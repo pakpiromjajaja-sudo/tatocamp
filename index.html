@@ -83,38 +83,6 @@
 
 html { scroll-behavior: smooth; }
 
-/* ══ Mobile UX: momentum scroll + touch targets ══ */
-@media (max-width: 1100px) {
-  .rooms-scroll,
-  #track-list,
-  .messages,
-  .drawer-content,
-  .drawer-chat-messages,
-  .center,
-  .ambient-mixer-standalone .ambient-mixer-body {
-    -webkit-overflow-scrolling: touch;
-    scroll-behavior: smooth;
-    overscroll-behavior: contain;
-  }
-
-  button, .action, .track button, .mobile-nav-btn,
-  .drawer-track-play, .mini-play-btn, .mini-skip-btn,
-  .fp-play-btn, .fp-skip-btn {
-    min-height: 44px;
-    min-width: 44px;
-  }
-
-  .drawer-room { padding: 16px 16px; min-height: 60px; }
-  .mobile-nav-btn { padding: 12px 4px; }
-  .drawer-handle { width: 44px; height: 4px; margin: 14px auto 4px; }
-
-  /* iOS auto-zoom fix — input font >= 16px */
-  .drawer-chat-input, .chat-input,
-  input[type="text"], input[type="email"], input[type="password"] {
-    font-size: 16px !important;
-  }
-}
-
 body {
   font-family: var(--font-body);
   background: var(--navy);
@@ -1392,22 +1360,7 @@ body::after {
 }
 
 @media(max-width:720px){ .plan-grid { grid-template-columns: 1fr 1fr; } }
-@media(max-width:480px){ .plan-grid { grid-template-columns: 1fr; } }
-
-@media(max-width:480px){
-  .plan-card {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 16px;
-    gap: 12px;
-    text-align: left;
-  }
-  .plan-card > div:first-child { flex: 1; min-width: 0; }
-  .plan-card .plan-name { font-size: 13px; margin-bottom: 2px; }
-  .plan-card .plan-price { font-size: 22px; }
-  .plan-card .plan-btn { margin-top: 0; white-space: nowrap; flex-shrink: 0; }
-}
+@media(max-width:420px){ .plan-grid { grid-template-columns: 1fr; } }
 
 .plan-card {
   border: none;
@@ -1689,28 +1642,9 @@ body::after {
   }
 
   .mobile-nav-btn:last-child { border-right: none; }
-  .mobile-nav-btn.active { color: var(--cyan); background: transparent; }
-  .mobile-nav-btn svg { width: 18px; height: 18px; position: relative; z-index: 1; }
-  .mobile-nav-btn span { font-size: 6.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; position: relative; z-index: 1; }
-
-  /* Active pill indicator */
-  .mobile-nav-btn::before {
-    content: '';
-    position: absolute;
-    top: 6px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 40px;
-    height: 32px;
-    background: var(--cyan-dim);
-    border-radius: 8px;
-    opacity: 0;
-    transition: opacity .18s ease;
-    pointer-events: none;
-  }
-  .mobile-nav-btn.active::before { opacity: 1; }
-  .mobile-nav-btn.active svg { stroke-width: 2; }
-  .mobile-nav-btn.active span { font-weight: 800; }
+  .mobile-nav-btn.active { color: var(--cyan); background: var(--cyan-dim); }
+  .mobile-nav-btn svg { width: 18px; height: 18px; }
+  .mobile-nav-btn span { font-size: 6.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
 
   #nav-play {
     background: var(--navy-3);
@@ -1775,7 +1709,6 @@ body::after {
     cursor: pointer; display: flex;
     justify-content: space-between; align-items: center;
     transition: all .15s; border-left: 3px solid transparent;
-    min-height: 64px;
   }
 
   .drawer-room.active {
@@ -1799,17 +1732,6 @@ body::after {
     padding: 3px 8px; white-space: nowrap;
     text-transform: uppercase; letter-spacing: .1em;
   }
-
-  .drawer-room-right {
-    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
-  }
-
-  .drawer-room-chevron {
-    opacity: 0.3;
-    flex-shrink: 0;
-  }
-
-  .drawer-room.active .drawer-room-chevron { opacity: 0.6; }
 
   /* Drawer chat */
   .drawer-chat-messages {
@@ -1899,24 +1821,14 @@ body::after {
 
   .drawer-amb-slider {
     -webkit-appearance: none; appearance: none;
-    width: 100%; height: 4px;
+    width: 100%; height: 2px;
     background: var(--border); outline: none; cursor: pointer;
     margin-top: 8px;
-    border-radius: 2px;
   }
 
   .drawer-amb-slider::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 20px; height: 20px;
+    -webkit-appearance: none; width: 14px; height: 14px;
     background: var(--cyan);
-    border-radius: 50%;
-    box-shadow: 0 0 6px rgba(255,112,0,.35);
-  }
-
-  .drawer-amb-slider::-moz-range-thumb {
-    width: 20px; height: 20px;
-    background: var(--cyan);
-    border-radius: 50%;
-    border: none;
   }
 
   .drawer-amb-vol { font-size: 9px; color: var(--cream-muted); margin-top: 3px; font-style: italic; }
@@ -1971,11 +1883,11 @@ body::after {
 }
 
 .mini-player-bar {
-  margin: 0 10px;
-  background: rgba(20,20,20,0.97);
+  margin: 0 8px;
+  background: rgba(20,20,20,0.96);
   border: 1px solid rgba(90,90,90,0.5);
   border-bottom: none;
-  border-radius: 14px 14px 0 0;
+  border-radius: 12px 12px 0 0;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   display: flex;
@@ -1984,7 +1896,7 @@ body::after {
   padding: 10px 14px;
   cursor: pointer;
   transition: background .2s;
-  box-shadow: 0 -6px 28px rgba(0,0,0,0.6), 0 -1px 0 rgba(255,112,0,.12);
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.5);
   position: relative;
   overflow: hidden;
 }
@@ -2458,9 +2370,9 @@ body::after {
       </button>
 
       <!-- Free timer badge -->
-      <div style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:rgba(255,112,0,.1);border:1px solid rgba(255,112,0,.35);border-radius:99px;max-width:fit-content;">
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:4px;">
         <span style="width:7px;height:7px;background:#22C55E;border-radius:50%;flex-shrink:0;animation:pulse 2s infinite;"></span>
-        <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:#FF7000;letter-spacing:.04em;">เข้าใช้ฟรี 30 นาที · ไม่ต้องสมัคร</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(242,242,242,.5);letter-spacing:.1em;">ฟรี 30 นาที → หลังจากนั้นเลือก plan</span>
       </div>
 
       <!-- Watch intro small link -->
@@ -3855,40 +3767,10 @@ var activeTrackBtn=null, _pendingYtId=null;
 window.onYouTubeIframeAPIReady=function(){
   ytPlayer=new YT.Player('yt-player',{
     height:'1', width:'1', videoId:ROOMS[0].ytId,
-    /* origin + nocookie reduces ad frequency significantly */
-    host: 'https://www.youtube-nocookie.com',
-    playerVars:{
-      autoplay:0, controls:0, disablekb:1, fs:0,
-      modestbranding:1, playsinline:1, rel:0, enablejsapi:1,
-      /* These help reduce ads: */
-      iv_load_policy:3,   /* hide video annotations */
-      cc_load_policy:0,
-      origin: window.location.origin || 'https://tato.camp'
-    },
+    playerVars:{ autoplay:0, controls:0, disablekb:1, fs:0, modestbranding:1, playsinline:1, rel:0, enablejsapi:1 },
     events:{ onReady:onYtReady, onStateChange:onYtStateChange, onError:onYtError }
   });
 };
-
-/* ── AD-SKIP: ตรวจจับ ad แล้ว skip อัตโนมัติ ── */
-(function(){
-  var _adCheckInterval = null;
-  window._startAdSkipWatcher = function(){
-    clearInterval(_adCheckInterval);
-    _adCheckInterval = setInterval(function(){
-      if(!ytPlayer || typeof ytPlayer.getPlayerState !== 'function') return;
-      /* ถ้า player เล่นอยู่ แต่ duration สั้น (<35s) = likely ad */
-      var state = ytPlayer.getPlayerState();
-      if(state !== 1) return; /* 1 = PLAYING */
-      var dur = ytPlayer.getDuration ? ytPlayer.getDuration() : 0;
-      var cur = ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0;
-      /* Ad มักจะ duration < 35 วินาที และเล่นได้ไม่นาน */
-      if(dur > 0 && dur < 35 && cur < dur){
-        /* Skip to end of ad */
-        ytPlayer.seekTo(dur, true);
-      }
-    }, 800);
-  };
-})();
 
 function onYtReady(e){
   ytReady=true;
@@ -3899,8 +3781,6 @@ function onYtReady(e){
   var sl=document.getElementById('volume-slider');
   if(sl){ sl.value=volInt; if(typeof _updateVolSliderBg==='function') _updateVolSliderBg(volInt); }
   if(_pendingYtId){ ytPlayer.loadVideoById(_pendingYtId); _pendingYtId=null; }
-  /* Start ad-skip watcher */
-  if(typeof window._startAdSkipWatcher === 'function') window._startAdSkipWatcher();
 }
 
 function onYtStateChange(e){
@@ -4381,7 +4261,7 @@ function setNavActive(id){ document.querySelectorAll('.mobile-nav-btn').forEach(
 
 document.addEventListener('click',e=>{ if(!activeDrawer) return; var drawer=document.getElementById('drawer-'+activeDrawer); var nav=document.getElementById('mobile-nav'); if(nav&&nav.contains(e.target)) return; if(drawer&&drawer.contains(e.target)) return; drawer.classList.remove('open'); activeDrawer=null; setNavActive('nav-rooms'); });
 
-function renderDrawerRooms(){ var list=document.getElementById('drawer-room-list'); if(!list) return; list.innerHTML=ROOMS.map((r,i)=>{ var cnt=(window._roomCounts&&window._roomCounts[i])?window._roomCounts[i]:0; var badge=cnt>0?'<div class="drawer-room-badge">● '+cnt+' here</div>':(i===currentRoomIdx?'<div class="drawer-room-badge">● Now</div>':''); var chevron='<svg class="drawer-room-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>'; return '<div class="drawer-room'+(i===currentRoomIdx?' active':'')+'" data-room="'+i+'" onclick="switchRoomMobile(this)"><div><h3>'+r.name+'</h3><p>'+r.vibe+'</p></div><div class="drawer-room-right">'+badge+chevron+'</div></div>'; }).join(''); }
+function renderDrawerRooms(){ var list=document.getElementById('drawer-room-list'); if(!list) return; list.innerHTML=ROOMS.map((r,i)=>{ var cnt=(window._roomCounts&&window._roomCounts[i])?window._roomCounts[i]:0; var badge=cnt>0?'<div class="drawer-room-badge">● '+cnt+' here</div>':(i===currentRoomIdx?'<div class="drawer-room-badge">● Now</div>':''); return '<div class="drawer-room'+(i===currentRoomIdx?' active':'')+'" data-room="'+i+'" onclick="switchRoomMobile(this)"><div><h3>'+r.name+'</h3><p>'+r.vibe+'</p></div>'+badge+'</div>'; }).join(''); }
 
 function switchRoomMobile(el){ var idx=parseInt(el.dataset.room); var desktopRoomEl=document.querySelector('.room[data-room="'+idx+'"]'); if(desktopRoomEl) switchRoom(desktopRoomEl,true); renderDrawerRooms(); document.getElementById('drawer-rooms').classList.remove('open'); activeDrawer=null; setNavActive('nav-rooms'); updateMobileRoomPill(); }
 
