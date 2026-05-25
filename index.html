@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>TATO Digital Camp</title>
 <meta name="description" content="A cinematic digital café for night people. Focus, relax, and work quietly together." />
 <meta name="theme-color" content="#0D0D0D" />
@@ -77,12 +77,6 @@
   --r-lg: 8px;
   --r-md: 6px;
   --r-sm: 4px;
-
-  /* Safe area insets — updated by JS on iOS */
-  --sab: 0px;  /* safe-area-inset-bottom */
-  --sat: 0px;  /* safe-area-inset-top */
-  /* Dynamic bottom offset for mobile (nav + mini player) */
-  --mobile-bottom-offset: 130px;
 }
 
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
@@ -133,29 +127,6 @@ html {
   height: 100%;
   overflow: hidden;
 }
-
-/* ══ Storage: safe wrapper for iOS private mode ══ */
-window._store = (function(){
-  var _mem = {};
-  function _ls(){ try{ return localStorage; }catch(e){ return null; } }
-  return {
-    get: function(k, def){
-      var ls=_ls();
-      if(ls){ var v=ls.getItem(k); return v!==null?v:(def!==undefined?def:null); }
-      return k in _mem ? _mem[k] : (def!==undefined?def:null);
-    },
-    set: function(k,v){
-      var ls=_ls();
-      if(ls){ try{ ls.setItem(k,String(v)); return; }catch(e){} }
-      _mem[k]=String(v);
-    },
-    remove: function(k){
-      var ls=_ls();
-      if(ls){ try{ ls.removeItem(k); }catch(e){} }
-      delete _mem[k];
-    }
-  };
-})();
 
 /* ── Scanline overlay ── */
 body::before {
@@ -1621,7 +1592,7 @@ body::after {
     grid-template-columns: 1fr !important;
     height: auto !important;
     min-height: 100svh !important;
-    padding: 10px 10px calc(180px + env(safe-area-inset-bottom)) !important; /* nav(60) + mini-player(56) + gap */
+    padding: 10px 10px calc(130px + env(safe-area-inset-bottom)) !important;
     gap: 0;
     overflow: visible !important;
     border: none;
@@ -1910,7 +1881,7 @@ body::after {
   .scene { height: 34vh !important; min-height: 210px !important; max-height: 320px !important; }
   .scene-content { padding: 18px 14px; }
   .welcome h1 { font-size: clamp(22px, 7vw, 40px) !important; margin-top: 10px; }
-  .app { padding: 8px 8px calc(172px + env(safe-area-inset-bottom)) !important; } /* nav + mini player */
+  .app { padding: 8px 8px calc(118px + env(safe-area-inset-bottom)) !important; }
 }
 
 @media(min-width:901px) and (orientation:landscape) {
@@ -2360,28 +2331,142 @@ body::after {
 }
 .zen-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
-
-<script>
-/* Propagate CSS env() safe-area values to CSS vars (for JS access) */
-(function(){
-  function updateSafeArea(){
-    document.documentElement.style.setProperty('--sab','env(safe-area-inset-bottom,0px)');
-    document.documentElement.style.setProperty('--sat','env(safe-area-inset-top,0px)');
-  }
-  updateSafeArea();
-  window.addEventListener('resize',updateSafeArea);
-})();
-</script>
 </head>
 <body>
-<!-- Hidden inputs required by enterCamp() -->
-<input id="nick-input" type="text" value="" style="display:none;" maxlength="24"/>
-<input id="email-input" type="email" value="" style="display:none;" maxlength="80"/>
 
 <!-- ═══════════════════════════════════════════════════
      HERO LANDING SCREEN — replaces old nick-overlay
      Full cinematic layout matching reference image
      ═══════════════════════════════════════════════════ -->
+<div class="nick-overlay" id="nick-overlay" style="display:none;">
+
+<!-- Hero background image -->
+<img id="hero-landing-bg"
+  src="https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=2070"
+  style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%;opacity:.78;z-index:0;transition:opacity .7s ease,src .5s;">
+
+<!-- Vignette layers -->
+<div style="position:absolute;inset:0;z-index:1;background:
+  linear-gradient(to right, rgba(13,13,13,.80) 0%, rgba(13,13,13,.30) 55%, transparent 100%),
+  linear-gradient(to top,   rgba(13,13,13,.90) 0%, rgba(13,13,13,.40) 35%, transparent 75%),
+  linear-gradient(to bottom,rgba(13,13,13,.60) 0%, transparent 25%);pointer-events:none;"></div>
+
+<!-- Scanlines -->
+<div style="position:absolute;inset:0;z-index:2;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.018) 3px,rgba(0,0,0,.018) 4px);pointer-events:none;"></div>
+
+<!-- Orange atmosphere glow -->
+<div style="position:absolute;inset:0;z-index:1;background:radial-gradient(ellipse 120% 60% at 80% 0%,rgba(255,112,0,.05) 0%,transparent 50%),radial-gradient(ellipse 60% 50% at 0% 100%,rgba(212,93,0,.04) 0%,transparent 50%);pointer-events:none;"></div>
+
+<!-- ── NAVBAR ── -->
+<nav style="position:relative;z-index:10;height:64px;padding:0 40px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+  <div style="font-family:'Inter',sans-serif;font-size:14px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#F2F2F2;text-shadow:0 0 20px rgba(255,112,0,.3);">TATO.</div>
+  <ul style="display:flex;gap:36px;align-items:center;list-style:none;margin:0;padding:0;" id="hero-nav-menu">
+    <li><a href="#" style="font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(242,242,242,.55);text-decoration:none;transition:color .2s;" onmouseover="this.style.color='#F2F2F2'" onmouseout="this.style.color='rgba(242,242,242,.55)'">HOME</a></li>
+    <li><a href="#" style="font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(242,242,242,.55);text-decoration:none;transition:color .2s;" onmouseover="this.style.color='#F2F2F2'" onmouseout="this.style.color='rgba(242,242,242,.55)'">ABOUT</a></li>
+    <li><a href="#" style="font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(242,242,242,.55);text-decoration:none;transition:color .2s;" onmouseover="this.style.color='#F2F2F2'" onmouseout="this.style.color='rgba(242,242,242,.55)'">GALLERY</a></li>
+    <li><a href="#" style="font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(242,242,242,.55);text-decoration:none;transition:color .2s;" onmouseover="this.style.color='#F2F2F2'" onmouseout="this.style.color='rgba(242,242,242,.55)'">FEATURES</a></li>
+  </ul>
+  <div style="cursor:pointer;display:flex;flex-direction:column;gap:4px;color:rgba(242,242,242,.55);">
+    <span style="display:block;width:18px;height:2px;background:currentColor;"></span>
+    <span style="display:block;width:12px;height:2px;background:currentColor;"></span>
+    <span style="display:block;width:18px;height:2px;background:currentColor;"></span>
+  </div>
+</nav>
+
+<!-- ── HERO BODY ── -->
+<div style="position:relative;z-index:5;flex:1;display:grid;grid-template-columns:1fr auto;grid-template-rows:1fr auto;grid-template-areas:'content pag' 'stats stats';padding:0 40px 36px;min-height:0;">
+
+  <!-- LEFT CONTENT -->
+  <div style="grid-area:content;display:flex;flex-direction:column;justify-content:center;padding-bottom:24px;max-width:580px;">
+
+    <div id="hero-room-label" style="font-family:'Inter',sans-serif;font-size:10px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:#FF7000;margin-bottom:18px;text-shadow:0 0 12px rgba(255,112,0,.45);">WELCOME BACK</div>
+
+    <h1 id="hero-room-title" style="font-family:'Inter',sans-serif;font-size:clamp(38px,5.5vw,68px);font-weight:900;letter-spacing:-.01em;line-height:1.06;color:#F2F2F2;text-transform:uppercase;margin:0 0 28px;">ENDLESS<br>DISCOVERY</h1>
+
+    <!-- Room selector pills -->
+    <div id="hero-room-pills" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px;"></div>
+
+    <!-- Actions — zero friction entry -->
+    <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:32px;max-width:340px;">
+
+      <!-- BIG entry button -->
+      <button onclick="enterCampFree()" id="hero-enter-btn"
+        style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 28px;background:#FF7000;border:none;border-radius:6px;font-family:'Inter',sans-serif;cursor:pointer;transition:transform .18s,box-shadow .18s;width:100%;"
+        onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 28px rgba(255,112,0,.5)'"
+        onmouseout="this.style.transform='';this.style.boxShadow=''">
+        <span style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;">
+          <span id="hero-free-label" style="font-size:15px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#0D0D0D;line-height:1;">เข้าใช้ฟรี 30 นาที</span>
+          <span style="font-size:10px;font-weight:500;letter-spacing:.08em;color:rgba(0,0,0,.55);text-transform:uppercase;">ไม่ต้องสมัคร · เล่นได้เลย</span>
+        </span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+
+      <!-- Free timer badge -->
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:4px;">
+        <span style="width:7px;height:7px;background:#22C55E;border-radius:50%;flex-shrink:0;animation:pulse 2s infinite;"></span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(242,242,242,.5);letter-spacing:.1em;">ฟรี 30 นาที → หลังจากนั้นเลือก plan</span>
+      </div>
+
+      <!-- Watch intro small link -->
+      <button onclick="heroPlayPreview()" style="display:flex;align-items:center;gap:8px;background:transparent;border:none;font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(242,242,242,.4);cursor:pointer;padding:0;transition:color .2s;" onmouseover="this.style.color='rgba(242,242,242,.7)'" onmouseout="this.style.color='rgba(242,242,242,.4)'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5l11 7-11 7V5z"/></svg>
+        ดูตัวอย่าง
+      </button>
+
+    </div>
+
+    <!-- Hidden inputs still needed for enterCamp logic -->
+    <input id="nick-input" type="text" value="" style="display:none;" maxlength="24"/>
+    <input id="email-input" type="email" value="" style="display:none;" maxlength="80"/>
+
+  </div>
+
+  <!-- PAGINATION RAIL (right) -->
+  <div style="grid-area:pag;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-bottom:24px;padding-left:24px;">
+    <div id="hero-pag-current" style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;color:#F2F2F2;letter-spacing:.08em;">01</div>
+    <div style="width:1px;height:44px;background:rgba(242,242,242,.2);margin:8px 0;"></div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:400;color:rgba(242,242,242,.45);letter-spacing:.08em;">06</div>
+  </div>
+
+  <!-- STATS BAR (bottom) -->
+  <div style="grid-area:stats;display:flex;align-items:flex-end;justify-content:space-between;padding-top:20px;border-top:1px solid rgba(242,242,242,.08);">
+
+    <!-- Social links -->
+    <div style="display:flex;gap:20px;">
+      <a href="#" style="font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:rgba(242,242,242,.5);text-decoration:none;" onmouseover="this.style.color='#F2F2F2'" onmouseout="this.style.color='rgba(242,242,242,.5)'">INSTAGRAM</a>
+      <a href="#" style="font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:rgba(242,242,242,.5);text-decoration:none;" onmouseover="this.style.color='#F2F2F2'" onmouseout="this.style.color='rgba(242,242,242,.5)'">YOUTUBE</a>
+    </div>
+
+    <!-- Numbers -->
+    <div style="display:flex;gap:48px;align-items:flex-end;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+        <div id="hero-stat-tracks" style="font-family:'Inter',sans-serif;font-size:clamp(24px,2.8vw,36px);font-weight:900;color:#F2F2F2;letter-spacing:-.02em;line-height:1;">8</div>
+        <div style="font-size:9px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(242,242,242,.5);">Tracks</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+        <div style="font-family:'Inter',sans-serif;font-size:clamp(24px,2.8vw,36px);font-weight:900;color:#F2F2F2;letter-spacing:-.02em;line-height:1;">6</div>
+        <div style="font-size:9px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(242,242,242,.5);">Rooms</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+        <div style="font-family:'Inter',sans-serif;font-size:clamp(24px,2.8vw,36px);font-weight:900;color:#F2F2F2;letter-spacing:-.02em;line-height:1;">∞</div>
+        <div style="font-size:9px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(242,242,242,.5);">Vibes</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- INFO CARD — bottom right overlay -->
+<div id="hero-info-card" style="position:absolute;right:80px;bottom:110px;width:230px;background:rgba(20,20,20,.92);border:1px solid rgba(90,90,90,.45);backdrop-filter:blur(20px);padding:18px 20px;z-index:10;border-radius:4px;">
+  <div id="hero-card-label" style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#F2F2F2;margin-bottom:8px;">MAIN CAMP</div>
+  <div id="hero-card-desc" style="font-size:11px;color:rgba(242,242,242,.55);line-height:1.65;">A quiet place to stay online. Focus. Relax. Work quietly together.</div>
+</div>
+
+<!-- YT player hidden (preload) -->
+<div id="yt-player-hero" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;"></div>
+
+</div>
 <!-- ═══════════════════════════════════════════════════ -->
 
 <style>
@@ -2458,7 +2543,7 @@ body::after {
   // Arrow key room cycling
   document.addEventListener('keydown',function(e){
     var ov=document.getElementById('nick-overlay');
-    if(!ov||ov.style.display==='none'||ov.style.display==='') return;
+    if(!ov||ov.style.display==='none') return;
     if(e.target.tagName==='INPUT') return;
     if(e.key==='ArrowRight'||e.key==='ArrowDown') setHeroRoom((curHero+1)%HERO_ROOMS.length);
     if(e.key==='ArrowLeft'||e.key==='ArrowUp') setHeroRoom((curHero-1+HERO_ROOMS.length)%HERO_ROOMS.length);
@@ -3006,7 +3091,7 @@ onValue(chatRef,(snap)=>{
   const keys=allKeys.filter(k=>{ var ts=msgs[k].t||0; return ts===0||ts>=sessionStart-2000; }).slice(-CHAT_MAX);
   const newCount=keys.length;
   const isNewMsg=newCount>lastMsgCount&&lastMsgCount>0;
-  const overlayHidden=!document.getElementById('nick-overlay')||document.getElementById('nick-overlay').style.display==='none'||document.getElementById('nick-overlay').style.display==='';
+  const overlayHidden=document.getElementById('nick-overlay').style.display==='none';
   if(isNewMsg&&overlayHidden){ if(typeof window._onNewChatMessage==='function') window._onNewChatMessage(); showChatNotif(); }
   lastMsgCount=newCount;
   area.innerHTML='';
@@ -3062,19 +3147,17 @@ window.enterCamp=function(){
   avatarEl.textContent=uidToEmoji(uid); avatarEl.style.fontSize='18px';
   registerPresence(name,null,false);
   if(emailVal&&emailVal.includes('@')){ window._saveEmail(uid,name,emailVal); }
-  var _no=document.getElementById('nick-overlay'); if(_no) _no.style.display='none';
-  // Switch to last saved room
-  var savedRoom=parseInt(window._store.get('tato_last_room')||'0',10);
-  if(savedRoom>0&&savedRoom<6){
+  document.getElementById('nick-overlay').style.display='none';
+  // Switch to room selected on hero screen
+  var heroRoom=typeof window._getHeroCurRoom==='function'?window._getHeroCurRoom():0;
+  if(heroRoom!==0){
     setTimeout(function(){
-      var el=document.querySelector('.room[data-room="'+savedRoom+'"]');
+      var el=document.querySelector('.room[data-room="'+heroRoom+'"]');
       if(el&&typeof switchRoom==='function') switchRoom(el,true);
     },300);
   }
   // Delay login success until admin_config is loaded (so FREE_MS is correct)
   window._myUid = myUid; // expose UID globally for admin cross-reference
-  /* Set session fingerprint — prevents hero flash on same-session reload */
-  try { sessionStorage.setItem('tato_fp','1'); } catch(e){}
   if(window._adminConfigLoaded){
     if(typeof window._onLoginSuccess==='function') window._onLoginSuccess(myUid);
   } else {
@@ -3088,7 +3171,7 @@ document.getElementById('nick-input').addEventListener('keydown',e=>{ if(e.key==
 window._adminConfigLoaded = false;
 window._pendingLoginUid = null;
 
-/* ── Auto-enter: เข้า app ตรงเลย ไม่มีหน้า welcome ── */
+/* ── Auto-enter: ข้ามหน้า nick modal เข้าห้องทันที ── */
 (function(){
   var adj=['quiet','chill','dark','slow','night','deep','soft','cool','late','cozy'];
   var nou=['owl','fox','moon','star','wave','rain','mist','leaf','dusk','dawn'];
@@ -3117,7 +3200,7 @@ get(ref(db,"admin_config")).then(function(snap){
     var disp=document.getElementById('free-timer-display');
     if(disp&&cfg.freeMinutes){ disp.textContent=String(cfg.freeMinutes).padStart(2,'0')+':00'; }
     var heroLbl=document.getElementById('hero-free-label');
-    // hero label removed
+    if(heroLbl&&cfg.freeMinutes){ heroLbl.textContent='เข้าใช้ฟรี '+cfg.freeMinutes+' นาที'; }
     var freeNote=document.querySelector('#nick-overlay [style*="ฟรี 30 นาที"]');
     // Also update the note below the button
     var freeNoteSpan=document.querySelector('#nick-overlay span[style*="จ"]');
@@ -3356,20 +3439,7 @@ function startCountdown(){
 
 function startFreeTimer(){
   if(_subStatus!=='free') return;
-  /* Check if session already started (anti-abuse) */
-  var key='tato_free_start';
-  var now=Date.now();
-  try {
-    var saved=parseInt(sessionStorage.getItem(key)||'0',10);
-    if(saved && (now-saved) < (FREE_MS+5000)){
-      /* Resume existing timer */
-      _startedAt=saved;
-    } else {
-      _startedAt=now;
-      sessionStorage.setItem(key,String(now));
-    }
-  } catch(e){ _startedAt=now; }
-  clearTimeout(_paywallTimer); startCountdown();
+  clearTimeout(_paywallTimer); _startedAt=Date.now(); startCountdown();
   _paywallTimer=setTimeout(()=>{ if(_subStatus==='free') showPaywall(); },FREE_MS);
   // Show persistent timer bar (must be flex, not block)
   var bar=document.getElementById('free-timer-bar');
@@ -3416,22 +3486,7 @@ function showPaywall(){
   }
 }
 
-window.refreshForFree=function(){
-  /* Clear session fingerprint so hero shows again — but DON'T reset timer
-     Timer resets are tracked via sessionStorage to prevent abuse */
-  var key = 'tato_free_start';
-  var now = Date.now();
-  var started = null;
-  try { started = parseInt(sessionStorage.getItem(key)||'0',10); } catch(e){}
-  if(started && (now - started) < (window.FREE_MS||30*60*1000)){
-    /* Timer still running — just close paywall, don't reload */
-    document.getElementById('paywall-overlay').classList.remove('show');
-    return;
-  }
-  /* Genuine new session — allow reload */
-  try { sessionStorage.removeItem('tato_fp'); sessionStorage.removeItem(key); } catch(e){}
-  location.reload();
-};
+window.refreshForFree=function(){ document.getElementById('paywall-overlay').classList.remove('show'); location.reload(); };
 
 /* ── Plan card highlight selection ── */
 window.selectPlanCard = function(plan){
@@ -3675,7 +3730,7 @@ function switchRoom(el,force){
   var idx=parseInt(el.dataset.room);
   if(idx===currentRoomIdx&&!force) return;
   currentRoomIdx=idx; window.currentRoomIdx=idx;
-  window._store.set('tato_last_room',idx);
+  localStorage.setItem('tato_last_room',idx);
   document.querySelectorAll('.room').forEach(r=>r.classList.remove('active'));
   el.classList.add('active');
   var r=ROOMS[idx];
@@ -3709,7 +3764,7 @@ function switchRoom(el,force){
 }
 
 (function(){
-  var saved=parseInt(window._store.get('tato_last_room')||'0',10);
+  var saved=parseInt(localStorage.getItem('tato_last_room')||'0',10);
   if(saved>=0&&saved<ROOMS.length){ var el=document.querySelector('.room[data-room="'+saved+'"]'); if(el) switchRoom(el,true); else renderTrackList(ROOMS[0].trackList); }
   else renderTrackList(ROOMS[0].trackList);
 })();
@@ -3781,7 +3836,7 @@ window.onYouTubeIframeAPIReady=function(){
 
 function onYtReady(e){
   ytReady=true;
-  var vol=parseFloat(window._store.get('tato_volume')||'0.7');
+  var vol=parseFloat(localStorage.getItem('tato_volume')||'0.7');
   var volInt=Math.round(vol*100);
   ytPlayer.setVolume(volInt);
   // sync slider
@@ -3836,12 +3891,12 @@ function _updateVolSliderBg(val){
 window.onVolumeSlider=function(val){
   val=parseInt(val,10);
   if(ytReady&&ytPlayer) ytPlayer.setVolume(val);
-  window._store.set('tato_volume',(val/100).toFixed(2));
+  localStorage.setItem('tato_volume',(val/100).toFixed(2));
   _updateVolSliderBg(val);
 };
 // restore saved volume
 (function(){
-  var vol=parseFloat(window._store.get('tato_volume')||'0.7');
+  var vol=parseFloat(localStorage.getItem('tato_volume')||'0.7');
   var sl=document.getElementById('volume-slider');
   if(sl){ sl.value=Math.round(vol*100); _updateVolSliderBg(Math.round(vol*100)); }
 })();
@@ -3869,8 +3924,8 @@ function loadStats(){ return { totalSecs:parseInt(localStorage.getItem('tato_tot
 function saveStats(s){ localStorage.setItem('tato_total_secs',s.totalSecs); localStorage.setItem(getTodayKey(),s.todaySecs); localStorage.setItem('tato_sessions',s.sessions); localStorage.setItem('tato_last_day',s.lastDay); localStorage.setItem('tato_streak',s.streak); }
 function updateStreak(s){ var today=new Date().toISOString().slice(0,10); if(s.lastDay===today) return s; var yesterday=new Date(Date.now()-86400000).toISOString().slice(0,10); if(s.lastDay===yesterday) s.streak+=1; else if(s.lastDay&&s.lastDay!==today) s.streak=1; else s.streak=Math.max(s.streak,1); s.lastDay=today; return s; }
 
-var focusSecs=parseInt(window._store.get('tato_focus_secs')||'0',10);
-setInterval(function(){ focusSecs++; window._store.set('tato_focus_secs',focusSecs); if(focusSecs%30===0){ var s=loadStats(); s.totalSecs+=30; s.todaySecs+=30; s=updateStreak(s); saveStats(s); } },1000);
+var focusSecs=parseInt(localStorage.getItem('tato_focus_secs')||'0',10);
+setInterval(function(){ focusSecs++; localStorage.setItem('tato_focus_secs',focusSecs); if(focusSecs%30===0){ var s=loadStats(); s.totalSecs+=30; s.todaySecs+=30; s=updateStreak(s); saveStats(s); } },1000);
 
 /* Pomodoro */
 var POMO_FOCUS=25*60,POMO_SHORT=5*60,POMO_LONG=15*60;
@@ -3997,7 +4052,7 @@ function toggleAmbientPanel(){ var panel=document.getElementById('ambient-mixer-
       <div style="font-size:10px;color:rgba(242,242,242,.4);letter-spacing:.08em;">★★★★★ &nbsp;"เปิดทำงานทุกคืน"</div>
       <div style="font-size:10px;color:rgba(242,242,242,.4);letter-spacing:.08em;">🔥 &nbsp;<span id="sp-members">—</span> members ทั้งหมด</div>
     </div>
-    <p class="paywall-sub">ขอบคุณที่มาอยู่ที่ TATO Camp 🏕<br>upgrade เพื่อใช้งานไม่จำกัด ไม่มีโฆษณา ทุก room</p>
+    <p class="paywall-sub">ขอบคุณที่มาอยู่ที่ TATO Camp 🏕<br>upgrade เพื่อใช้งานไม่จำกัด หรือ refresh เพื่อรับ 30 นาทีใหม่</p>
     <div class="plan-grid" id="plan-grid">
       <div class="plan-card" id="plan-card-free" onclick="selectPlanCard('free')">
         <div class="plan-tag free">ฟรี</div>
@@ -4040,7 +4095,7 @@ function toggleAmbientPanel(){ var panel=document.getElementById('ambient-mixer-
       <button onclick="savePaywallEmail()" style="padding:9px 16px;background:rgba(255,112,0,.15);border:1px solid rgba(255,112,0,.4);color:#FF7000;font-family:'Inter',sans-serif;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;border-radius:4px;white-space:nowrap;flex-shrink:0;">บันทึก</button>
     </div>
     <div style="margin-top:12px;">
-      <button class="paywall-footer" onclick="refreshForFree()">↺ กลับหน้าหลัก</button>
+      <button class="paywall-footer" onclick="refreshForFree()">↺ Refresh เพื่อรับ 30 นาทีใหม่</button>
     </div>
   </div>
 </div>
@@ -4401,17 +4456,7 @@ setInterval(function(){
   if(!nav||!mini) return;
   function update(){
     var navH=nav.offsetHeight||0;
-    /* Add safe-area-inset-bottom for iPhone notch */
-    var safeBottom=0;
-    try{
-      var safe=getComputedStyle(document.documentElement).getPropertyValue('--sab');
-      safeBottom=parseInt(safe)||0;
-    }catch(e){}
-    mini.style.bottom=(navH)+'px';
-    /* Ensure the page body bottom padding also includes mini player height */
-    var miniH=(document.getElementById('mini-player-bar')||{}).offsetHeight||56;
-    var totalBottom=navH+miniH;
-    document.documentElement.style.setProperty('--mobile-bottom-offset', totalBottom+'px');
+    mini.style.bottom=navH+'px';
   }
   update();
   window.addEventListener('resize',update);
@@ -4846,28 +4891,7 @@ console.log('%cGet UID: window._getMyUid()', 'color:rgba(255,255,255,.3);font-si
         <div style="grid-column:1/-1;">
           <button onclick="adminSaveSettings()" class="adm4-btn-orange">💾 SAVE ALL SETTINGS</button>
           <div id="adm-settings-result" style="font-family:'JetBrains Mono',monospace;font-size:11px;min-height:16px;letter-spacing:.1em;text-align:center;margin-top:8px;"></div>
-          <div id="adm-rules-hint" style="display:none;margin-top:8px;padding:10px 12px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:5px;font-size:10px;color:rgba(239,68,68,.8);font-family:'JetBrains Mono',monospace;line-height:1.7;">
-  ⚠ ต้องแก้ Firebase Rules<br>
-  Firebase Console → Realtime Database → Rules → ใส่:<br>
-  <code style="font-size:9px;color:rgba(255,112,0,.8);display:block;margin-top:6px;white-space:pre-wrap;">{
-  "rules": {
-    "subscriptions": {
-      ".read": "auth != null",
-      "$uid": { ".write": false }
-    },
-    "admin_config": {
-      ".read": true,
-      ".write": false
-    },
-    "presence": { ".read": true, ".write": "auth != null" },
-    "chat": { ".read": true, ".write": "auth != null" },
-    "payment_intent": { ".read": false, ".write": "auth != null" },
-    "notifications": {
-      "$uid": { ".read": "auth != null && auth.uid == $uid", ".write": false }
-    }
-  }
-}</code>
-</div>
+          <div id="adm-rules-hint" style="display:none;margin-top:8px;padding:10px 12px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:5px;font-size:10px;color:rgba(239,68,68,.8);font-family:'JetBrains Mono',monospace;line-height:1.7;">⚠ ต้องแก้ Firebase Rules<br>Firebase Console → Realtime Database → Rules</div>
         </div>
 
       </div>
@@ -6483,12 +6507,7 @@ window.showTatoToast = showTatoToast;
 
 // ── Slip Webhook — token อยู่ใน Make.com/backend เท่านั้น ──
 // ใส่ Make.com webhook URL ของคุณตรงนี้:
-var SLIP_WEBHOOK_URL = 'YOUR_MAKE_WEBHOOK_URL_HERE'; // ⚠ TODO: ใส่ Make.com webhook URL ของคุณ
-
-/* Validate webhook URL before sending */
-function _isWebhookConfigured(){
-  return SLIP_WEBHOOK_URL && SLIP_WEBHOOK_URL !== 'YOUR_MAKE_WEBHOOK_URL_HERE' && SLIP_WEBHOOK_URL.startsWith('http');
-}
+var SLIP_WEBHOOK_URL = 'YOUR_MAKE_WEBHOOK_URL_HERE';
 var TG_ADMIN_CHAT = '5137076057'; // chat_id ไม่ใช่ secret ใส่ได้
 
 var _slipFile = null;
@@ -6591,19 +6610,6 @@ async function confirmSlipPayment() {
     for (var bi = 0; bi < byteChars.length; bi++) byteArr[bi] = byteChars.charCodeAt(bi);
     webhookForm.append('photo', new Blob([byteArr], { type: mimeType }), 'slip.jpg');
 
-    if(!_isWebhookConfigured()){
-      /* Webhook not set — skip fetch, just save to Firebase for manual admin review */
-      if(resultEl){ resultEl.style.color='#FF7000'; resultEl.textContent='⏳ บันทึกแล้ว! Admin จะตรวจสอบใน Dashboard'; }
-      if(btn){ btn.style.background='#FF7000'; btn.style.opacity='1'; btn.textContent='⏳ รอ Admin อนุมัติ…'; }
-      if(window._fbSet && window._fbRef){
-        window._fbSet(window._fbRef('payment_intent/'+userId), {
-          name:userName||'guest', plan:planKey, amount:price,
-          slipCode:slipCode, t:Date.now(), status:'pending'
-        }).catch(function(){});
-      }
-      _startApprovalListener(userId, btn, resultEl);
-      return;
-    }
     var response = await fetch(SLIP_WEBHOOK_URL, { method: 'POST', body: webhookForm });
 
     if (response.ok) {
