@@ -1559,8 +1559,8 @@ body::after {
   .app {
     grid-template-columns: 1fr !important;
     height: auto !important;
-    min-height: 100svh !important;
-    padding: 10px 10px calc(130px + env(safe-area-inset-bottom)) !important;
+    min-height: 100dvh !important;
+    padding: 10px 10px var(--app-pb, calc(130px + env(safe-area-inset-bottom))) !important;
     gap: 0;
     overflow: visible !important;
     border: none;
@@ -1603,7 +1603,7 @@ body::after {
   .app {
     grid-template-columns: 1fr;
     padding: 8px 8px calc(60px + env(safe-area-inset-bottom));
-    height: auto; min-height: 100svh; gap: 0; overflow: visible; border: none;
+    height: auto; min-height: 100dvh; gap: 0; overflow: visible; border: none;
   }
   .center { overflow: visible; height: auto; border-right: none; }
   .sidebar { display: none; }
@@ -1845,7 +1845,7 @@ body::after {
   .scene { height: 34vh !important; min-height: 210px !important; max-height: 320px !important; }
   .scene-content { padding: 18px 14px; }
   .welcome h1 { font-size: clamp(22px, 7vw, 40px) !important; margin-top: 10px; }
-  .app { padding: 8px 8px calc(118px + env(safe-area-inset-bottom)) !important; }
+  .app { padding: 8px 8px var(--app-pb, calc(118px + env(safe-area-inset-bottom))) !important; }
 }
 
 @media(min-width:901px) and (orientation:landscape) {
@@ -4359,17 +4359,56 @@ setInterval(function(){
   }catch(e){}
 }, 1000);
 
-/* Adjust mini player bottom to sit just above mobile nav */
+/* Adjust mini player bottom to sit just above mobile nav + update .app padding-bottom dynamically */
 (function positionMiniPlayer(){
-  var nav=document.getElementById('mobile-nav');
-  var mini=document.getElementById('mobile-mini-player');
-  if(!nav||!mini) return;
-  function update(){
-    var navH=nav.offsetHeight||0;
-    mini.style.bottom=navH+'px';
+  var nav  = document.getElementById('mobile-nav');
+  var mini = document.getElementById('mobile-mini-player');
+  var app  = document.querySelector('.app');
+  if(!nav || !mini) return;
+
+  function getSafeBottom(){
+    /* CSS env(safe-area-inset-bottom) — read via a tiny probe element */
+    try {
+      var probe = document.getElementById('_safe-probe');
+      if(!probe){
+        probe = document.createElement('div');
+        probe.id = '_safe-probe';
+        probe.style.cssText = 'position:fixed;bottom:env(safe-area-inset-bottom,0px);height:0;width:0;pointer-events:none;visibility:hidden;';
+        document.body.appendChild(probe);
+      }
+      var rect = probe.getBoundingClientRect();
+      /* safe-area ≈ (window.innerHeight - rect.bottom) when probe is fixed at safe-area offset */
+      var safe = window.innerHeight - rect.bottom;
+      return (safe > 0 && safe < 200) ? safe : 0;
+    } catch(e){ return 0; }
   }
+
+  function update(){
+    var navH  = nav.offsetHeight  || 0;
+    var miniBar = mini.querySelector('.mini-player-bar');
+    /* mini-player-bar real rendered height (includes padding); fall back to 62px estimate */
+    var miniH = miniBar ? miniBar.offsetHeight : 62;
+    var safe  = getSafeBottom();
+
+    /* position the mini player wrapper just above the nav */
+    mini.style.bottom = navH + 'px';
+
+    /* total clearance needed = nav + mini bar + a little breathing room (8px margin) + safe area */
+    var totalPb = navH + miniH + 8 + safe;
+
+    /* write as CSS custom property so all @media rules that use var(--app-pb) pick it up */
+    if(app) app.style.setProperty('--app-pb', totalPb + 'px');
+  }
+
+  /* Run immediately, after fonts/layout settle, and on resize/orientation */
   update();
-  window.addEventListener('resize',update);
+  setTimeout(update, 100);
+  setTimeout(update, 400);
+  window.addEventListener('resize', update);
+  window.addEventListener('orientationchange', function(){ setTimeout(update, 300); });
+
+  /* Expose so other code can trigger a re-measure if needed */
+  window._repositionMiniPlayer = update;
 })();
 
 function syncDrawerChat(){ var srcMsgs=document.getElementById('messages-area').innerHTML; document.getElementById('drawer-messages').innerHTML=srcMsgs; document.getElementById('drawer-messages').scrollTop=9999; }
