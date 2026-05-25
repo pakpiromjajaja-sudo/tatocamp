@@ -2374,140 +2374,14 @@ body::after {
 </script>
 </head>
 <body>
+<!-- Hidden inputs required by enterCamp() -->
+<input id="nick-input" type="text" value="" style="display:none;" maxlength="24"/>
+<input id="email-input" type="email" value="" style="display:none;" maxlength="80"/>
 
 <!-- ═══════════════════════════════════════════════════
      HERO LANDING SCREEN — replaces old nick-overlay
      Full cinematic layout matching reference image
      ═══════════════════════════════════════════════════ -->
-<div class="nick-overlay" id="nick-overlay" style="display:none;">
-
-<!-- Hero background image -->
-<img id="hero-landing-bg"
-  src="https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=2070"
-  style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%;opacity:.78;z-index:0;transition:opacity .7s ease,src .5s;">
-
-<!-- Vignette layers -->
-<div style="position:absolute;inset:0;z-index:1;background:
-  linear-gradient(to right, rgba(13,13,13,.80) 0%, rgba(13,13,13,.30) 55%, transparent 100%),
-  linear-gradient(to top,   rgba(13,13,13,.90) 0%, rgba(13,13,13,.40) 35%, transparent 75%),
-  linear-gradient(to bottom,rgba(13,13,13,.60) 0%, transparent 25%);pointer-events:none;"></div>
-
-<!-- Scanlines -->
-<div style="position:absolute;inset:0;z-index:2;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.018) 3px,rgba(0,0,0,.018) 4px);pointer-events:none;"></div>
-
-<!-- Orange atmosphere glow -->
-<div style="position:absolute;inset:0;z-index:1;background:radial-gradient(ellipse 120% 60% at 80% 0%,rgba(255,112,0,.05) 0%,transparent 50%),radial-gradient(ellipse 60% 50% at 0% 100%,rgba(212,93,0,.04) 0%,transparent 50%);pointer-events:none;"></div>
-
-<!-- ── NAVBAR ── -->
-<nav style="position:relative;z-index:10;height:64px;padding:0 40px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-  <div style="font-family:'Inter',sans-serif;font-size:14px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#F2F2F2;text-shadow:0 0 20px rgba(255,112,0,.3);">TATO.</div>
-  <ul style="display:flex;gap:36px;align-items:center;list-style:none;margin:0;padding:0;" id="hero-nav-menu">
-    <li><a href="#" style="font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(242,242,242,.55);text-decoration:none;transition:color .2s;" onmouseover="this.style.color='#F2F2F2'" onmouseout="this.style.color='rgba(242,242,242,.55)'">HOME</a></li>
-    <li><a href="#" style="font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(242,242,242,.55);text-decoration:none;transition:color .2s;" onmouseover="this.style.color='#F2F2F2'" onmouseout="this.style.color='rgba(242,242,242,.55)'">ABOUT</a></li>
-    <li><a href="#" style="font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(242,242,242,.55);text-decoration:none;transition:color .2s;" onmouseover="this.style.color='#F2F2F2'" onmouseout="this.style.color='rgba(242,242,242,.55)'">GALLERY</a></li>
-    <li><a href="#" style="font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(242,242,242,.55);text-decoration:none;transition:color .2s;" onmouseover="this.style.color='#F2F2F2'" onmouseout="this.style.color='rgba(242,242,242,.55)'">FEATURES</a></li>
-  </ul>
-  <div style="cursor:pointer;display:flex;flex-direction:column;gap:4px;color:rgba(242,242,242,.55);">
-    <span style="display:block;width:18px;height:2px;background:currentColor;"></span>
-    <span style="display:block;width:12px;height:2px;background:currentColor;"></span>
-    <span style="display:block;width:18px;height:2px;background:currentColor;"></span>
-  </div>
-</nav>
-
-<!-- ── HERO BODY ── -->
-<div style="position:relative;z-index:5;flex:1;display:grid;grid-template-columns:1fr auto;grid-template-rows:1fr auto;grid-template-areas:'content pag' 'stats stats';padding:0 40px 36px;min-height:0;">
-
-  <!-- LEFT CONTENT -->
-  <div style="grid-area:content;display:flex;flex-direction:column;justify-content:center;padding-bottom:24px;max-width:580px;">
-
-    <div id="hero-room-label" style="font-family:'Inter',sans-serif;font-size:10px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:#FF7000;margin-bottom:18px;text-shadow:0 0 12px rgba(255,112,0,.45);">WELCOME BACK</div>
-
-    <h1 id="hero-room-title" style="font-family:'Inter',sans-serif;font-size:clamp(38px,5.5vw,68px);font-weight:900;letter-spacing:-.01em;line-height:1.06;color:#F2F2F2;text-transform:uppercase;margin:0 0 28px;">ENDLESS<br>DISCOVERY</h1>
-
-    <!-- Room selector pills -->
-    <div id="hero-room-pills" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px;"></div>
-
-    <!-- Actions — zero friction entry -->
-    <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:32px;max-width:340px;">
-
-      <!-- BIG entry button -->
-      <button onclick="enterCampFree()" id="hero-enter-btn"
-        style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 28px;background:#FF7000;border:none;border-radius:6px;font-family:'Inter',sans-serif;cursor:pointer;transition:transform .18s,box-shadow .18s;width:100%;"
-        onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 28px rgba(255,112,0,.5)'"
-        onmouseout="this.style.transform='';this.style.boxShadow=''">
-        <span style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;">
-          <span id="hero-free-label" style="font-size:15px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#0D0D0D;line-height:1;">เข้าใช้ฟรี 30 นาที</span>
-          <span style="font-size:10px;font-weight:500;letter-spacing:.08em;color:rgba(0,0,0,.55);text-transform:uppercase;">ไม่ต้องสมัคร · เล่นได้เลย</span>
-        </span>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-      </button>
-
-      <!-- Free timer badge -->
-      <div style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:4px;">
-        <span style="width:7px;height:7px;background:#22C55E;border-radius:50%;flex-shrink:0;animation:pulse 2s infinite;"></span>
-        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(242,242,242,.5);letter-spacing:.1em;">ฟรี 30 นาที → หลังจากนั้นเลือก plan</span>
-      </div>
-
-      <!-- Watch intro small link -->
-      <button onclick="heroPlayPreview()" style="display:flex;align-items:center;gap:8px;background:transparent;border:none;font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(242,242,242,.4);cursor:pointer;padding:0;transition:color .2s;" onmouseover="this.style.color='rgba(242,242,242,.7)'" onmouseout="this.style.color='rgba(242,242,242,.4)'">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5l11 7-11 7V5z"/></svg>
-        ดูตัวอย่าง
-      </button>
-
-    </div>
-
-    <!-- Hidden inputs still needed for enterCamp logic -->
-    <input id="nick-input" type="text" value="" style="display:none;" maxlength="24"/>
-    <input id="email-input" type="email" value="" style="display:none;" maxlength="80"/>
-
-  </div>
-
-  <!-- PAGINATION RAIL (right) -->
-  <div style="grid-area:pag;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-bottom:24px;padding-left:24px;">
-    <div id="hero-pag-current" style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;color:#F2F2F2;letter-spacing:.08em;">01</div>
-    <div style="width:1px;height:44px;background:rgba(242,242,242,.2);margin:8px 0;"></div>
-    <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:400;color:rgba(242,242,242,.45);letter-spacing:.08em;">06</div>
-  </div>
-
-  <!-- STATS BAR (bottom) -->
-  <div style="grid-area:stats;display:flex;align-items:flex-end;justify-content:space-between;padding-top:20px;border-top:1px solid rgba(242,242,242,.08);">
-
-    <!-- Social links -->
-    <div style="display:flex;gap:20px;">
-      <a href="#" style="font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:rgba(242,242,242,.5);text-decoration:none;" onmouseover="this.style.color='#F2F2F2'" onmouseout="this.style.color='rgba(242,242,242,.5)'">INSTAGRAM</a>
-      <a href="#" style="font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:rgba(242,242,242,.5);text-decoration:none;" onmouseover="this.style.color='#F2F2F2'" onmouseout="this.style.color='rgba(242,242,242,.5)'">YOUTUBE</a>
-    </div>
-
-    <!-- Numbers -->
-    <div style="display:flex;gap:48px;align-items:flex-end;">
-      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
-        <div id="hero-stat-tracks" style="font-family:'Inter',sans-serif;font-size:clamp(24px,2.8vw,36px);font-weight:900;color:#F2F2F2;letter-spacing:-.02em;line-height:1;">8</div>
-        <div style="font-size:9px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(242,242,242,.5);">Tracks</div>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
-        <div style="font-family:'Inter',sans-serif;font-size:clamp(24px,2.8vw,36px);font-weight:900;color:#F2F2F2;letter-spacing:-.02em;line-height:1;">6</div>
-        <div style="font-size:9px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(242,242,242,.5);">Rooms</div>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
-        <div style="font-family:'Inter',sans-serif;font-size:clamp(24px,2.8vw,36px);font-weight:900;color:#F2F2F2;letter-spacing:-.02em;line-height:1;">∞</div>
-        <div style="font-size:9px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(242,242,242,.5);">Vibes</div>
-      </div>
-    </div>
-
-  </div>
-
-</div>
-
-<!-- INFO CARD — bottom right overlay -->
-<div id="hero-info-card" style="position:absolute;right:80px;bottom:110px;width:230px;background:rgba(20,20,20,.92);border:1px solid rgba(90,90,90,.45);backdrop-filter:blur(20px);padding:18px 20px;z-index:10;border-radius:4px;">
-  <div id="hero-card-label" style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#F2F2F2;margin-bottom:8px;">MAIN CAMP</div>
-  <div id="hero-card-desc" style="font-size:11px;color:rgba(242,242,242,.55);line-height:1.65;">A quiet place to stay online. Focus. Relax. Work quietly together.</div>
-</div>
-
-<!-- YT player hidden (preload) -->
-<div id="yt-player-hero" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;"></div>
-
-</div>
 <!-- ═══════════════════════════════════════════════════ -->
 
 <style>
@@ -2584,7 +2458,7 @@ body::after {
   // Arrow key room cycling
   document.addEventListener('keydown',function(e){
     var ov=document.getElementById('nick-overlay');
-    if(!ov||ov.style.display==='none') return;
+    if(!ov||ov.style.display==='none'||ov.style.display==='') return;
     if(e.target.tagName==='INPUT') return;
     if(e.key==='ArrowRight'||e.key==='ArrowDown') setHeroRoom((curHero+1)%HERO_ROOMS.length);
     if(e.key==='ArrowLeft'||e.key==='ArrowUp') setHeroRoom((curHero-1+HERO_ROOMS.length)%HERO_ROOMS.length);
@@ -3132,7 +3006,7 @@ onValue(chatRef,(snap)=>{
   const keys=allKeys.filter(k=>{ var ts=msgs[k].t||0; return ts===0||ts>=sessionStart-2000; }).slice(-CHAT_MAX);
   const newCount=keys.length;
   const isNewMsg=newCount>lastMsgCount&&lastMsgCount>0;
-  const overlayHidden=document.getElementById('nick-overlay').style.display==='none';
+  const overlayHidden=!document.getElementById('nick-overlay')||document.getElementById('nick-overlay').style.display==='none'||document.getElementById('nick-overlay').style.display==='';
   if(isNewMsg&&overlayHidden){ if(typeof window._onNewChatMessage==='function') window._onNewChatMessage(); showChatNotif(); }
   lastMsgCount=newCount;
   area.innerHTML='';
@@ -3188,12 +3062,12 @@ window.enterCamp=function(){
   avatarEl.textContent=uidToEmoji(uid); avatarEl.style.fontSize='18px';
   registerPresence(name,null,false);
   if(emailVal&&emailVal.includes('@')){ window._saveEmail(uid,name,emailVal); }
-  document.getElementById('nick-overlay').style.display='none';
-  // Switch to room selected on hero screen
-  var heroRoom=typeof window._getHeroCurRoom==='function'?window._getHeroCurRoom():0;
-  if(heroRoom!==0){
+  var _no=document.getElementById('nick-overlay'); if(_no) _no.style.display='none';
+  // Switch to last saved room
+  var savedRoom=parseInt(window._store.get('tato_last_room')||'0',10);
+  if(savedRoom>0&&savedRoom<6){
     setTimeout(function(){
-      var el=document.querySelector('.room[data-room="'+heroRoom+'"]');
+      var el=document.querySelector('.room[data-room="'+savedRoom+'"]');
       if(el&&typeof switchRoom==='function') switchRoom(el,true);
     },300);
   }
@@ -3214,23 +3088,14 @@ document.getElementById('nick-input').addEventListener('keydown',e=>{ if(e.key==
 window._adminConfigLoaded = false;
 window._pendingLoginUid = null;
 
-/* ── Hero screen: show landing, then enter on button click ── */
+/* ── Auto-enter: เข้า app ตรงเลย ไม่มีหน้า welcome ── */
 (function(){
   var adj=['quiet','chill','dark','slow','night','deep','soft','cool','late','cozy'];
   var nou=['owl','fox','moon','star','wave','rain','mist','leaf','dusk','dawn'];
   var num=Math.floor(Math.random()*900)+100;
   var autoName=adj[Math.floor(Math.random()*adj.length)]+'.'+nou[Math.floor(Math.random()*nou.length)]+num;
   document.getElementById('nick-input').value=autoName;
-  /* Check if returning visitor (has session fingerprint) */
-  var fp = null;
-  try { fp = sessionStorage.getItem('tato_fp'); } catch(e){}
-  if(fp){
-    /* Returning in same session — skip hero, enter directly */
-    window.enterCamp();
-  } else {
-    /* First visit — show hero screen */
-    document.getElementById('nick-overlay').style.display='flex';
-  }
+  window.enterCamp();
 })();
 
 function sanitize(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;'); }
@@ -3252,7 +3117,7 @@ get(ref(db,"admin_config")).then(function(snap){
     var disp=document.getElementById('free-timer-display');
     if(disp&&cfg.freeMinutes){ disp.textContent=String(cfg.freeMinutes).padStart(2,'0')+':00'; }
     var heroLbl=document.getElementById('hero-free-label');
-    if(heroLbl&&cfg.freeMinutes){ heroLbl.textContent='เข้าใช้ฟรี '+cfg.freeMinutes+' นาที'; }
+    // hero label removed
     var freeNote=document.querySelector('#nick-overlay [style*="ฟรี 30 นาที"]');
     // Also update the note below the button
     var freeNoteSpan=document.querySelector('#nick-overlay span[style*="จ"]');
