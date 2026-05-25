@@ -1297,10 +1297,18 @@ body::after {
 
 /* ── Paywall overlay ── */
 .paywall-overlay {
-  position: fixed; inset: 0; z-index: 800;
+  position: fixed; inset: 0;
+  /* must sit above mobile nav (9999) and mini player (9997) */
+  z-index: 10001;
   background: rgba(13,13,13,.97);
-  display: none; align-items: center; justify-content: center;
-  flex-direction: column; padding: 20px;
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  flex-direction: column;
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+  /* scrollable so content is never clipped on small phones */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .paywall-overlay.show { display: flex; }
@@ -1314,6 +1322,9 @@ body::after {
   position: relative;
   border-radius: var(--r-lg);
   box-shadow: 0 8px 40px rgba(0,0,0,0.7);
+  /* allow box to shrink and scroll inside overlay on small screens */
+  flex-shrink: 0;
+  margin: auto;
 }
 
 .paywall-box::before {
@@ -6435,9 +6446,13 @@ function showTatoToast(msg){
 /* ── UPGRADE PAGE → opens paywall directly ── */
 function openUpgradePage(){
   document.getElementById('paywall-overlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
   if(window._updateSocialProof) window._updateSocialProof();
 }
-function closeUpgradePage(){ document.getElementById('paywall-overlay').classList.remove('show'); }
+function closeUpgradePage(){
+  document.getElementById('paywall-overlay').classList.remove('show');
+  document.body.style.overflow = '';
+}
 function upgCopyUID(){ window.copyMyUid && window.copyMyUid(); }
 function upgSaveEmail(){
   var val = (document.getElementById('upg-email-input')||{}).value||''; val=val.trim();
