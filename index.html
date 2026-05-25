@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>TATO Digital Camp</title>
 <meta name="description" content="A cinematic digital café for night people. Focus, relax, and work quietly together." />
 <meta name="theme-color" content="#0D0D0D" />
@@ -77,11 +77,49 @@
   --r-lg: 8px;
   --r-md: 6px;
   --r-sm: 4px;
+
+  /* Safe area insets — updated by JS on iOS */
+  --sab: 0px;  /* safe-area-inset-bottom */
+  --sat: 0px;  /* safe-area-inset-top */
+  /* Dynamic bottom offset for mobile (nav + mini player) */
+  --mobile-bottom-offset: 130px;
 }
 
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
 html { scroll-behavior: smooth; }
+
+/* ══ Mobile UX: momentum scroll + touch targets ══ */
+@media (max-width: 1100px) {
+  .rooms-scroll,
+  #track-list,
+  .messages,
+  .drawer-content,
+  .drawer-chat-messages,
+  .center,
+  .ambient-mixer-standalone .ambient-mixer-body {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+  }
+
+  button, .action, .track button, .mobile-nav-btn,
+  .drawer-track-play, .mini-play-btn, .mini-skip-btn,
+  .fp-play-btn, .fp-skip-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .drawer-room { padding: 16px 16px; min-height: 60px; }
+  .mobile-nav-btn { padding: 12px 4px; }
+  .drawer-handle { width: 44px; height: 4px; margin: 14px auto 4px; }
+
+  /* iOS auto-zoom fix — input font >= 16px */
+  .drawer-chat-input, .chat-input,
+  input[type="text"], input[type="email"], input[type="password"] {
+    font-size: 16px !important;
+  }
+}
 
 body {
   font-family: var(--font-body);
@@ -95,6 +133,29 @@ html {
   height: 100%;
   overflow: hidden;
 }
+
+/* ══ Storage: safe wrapper for iOS private mode ══ */
+window._store = (function(){
+  var _mem = {};
+  function _ls(){ try{ return localStorage; }catch(e){ return null; } }
+  return {
+    get: function(k, def){
+      var ls=_ls();
+      if(ls){ var v=ls.getItem(k); return v!==null?v:(def!==undefined?def:null); }
+      return k in _mem ? _mem[k] : (def!==undefined?def:null);
+    },
+    set: function(k,v){
+      var ls=_ls();
+      if(ls){ try{ ls.setItem(k,String(v)); return; }catch(e){} }
+      _mem[k]=String(v);
+    },
+    remove: function(k){
+      var ls=_ls();
+      if(ls){ try{ ls.removeItem(k); }catch(e){} }
+      delete _mem[k];
+    }
+  };
+})();
 
 /* ── Scanline overlay ── */
 body::before {
@@ -1560,7 +1621,7 @@ body::after {
     grid-template-columns: 1fr !important;
     height: auto !important;
     min-height: 100svh !important;
-    padding: 10px 10px calc(130px + env(safe-area-inset-bottom)) !important;
+    padding: 10px 10px calc(180px + env(safe-area-inset-bottom)) !important; /* nav(60) + mini-player(56) + gap */
     gap: 0;
     overflow: visible !important;
     border: none;
@@ -1849,7 +1910,7 @@ body::after {
   .scene { height: 34vh !important; min-height: 210px !important; max-height: 320px !important; }
   .scene-content { padding: 18px 14px; }
   .welcome h1 { font-size: clamp(22px, 7vw, 40px) !important; margin-top: 10px; }
-  .app { padding: 8px 8px calc(118px + env(safe-area-inset-bottom)) !important; }
+  .app { padding: 8px 8px calc(172px + env(safe-area-inset-bottom)) !important; } /* nav + mini player */
 }
 
 @media(min-width:901px) and (orientation:landscape) {
@@ -2299,6 +2360,18 @@ body::after {
 }
 .zen-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
+
+<script>
+/* Propagate CSS env() safe-area values to CSS vars (for JS access) */
+(function(){
+  function updateSafeArea(){
+    document.documentElement.style.setProperty('--sab','env(safe-area-inset-bottom,0px)');
+    document.documentElement.style.setProperty('--sat','env(safe-area-inset-top,0px)');
+  }
+  updateSafeArea();
+  window.addEventListener('resize',updateSafeArea);
+})();
+</script>
 </head>
 <body>
 
@@ -3126,6 +3199,8 @@ window.enterCamp=function(){
   }
   // Delay login success until admin_config is loaded (so FREE_MS is correct)
   window._myUid = myUid; // expose UID globally for admin cross-reference
+  /* Set session fingerprint — prevents hero flash on same-session reload */
+  try { sessionStorage.setItem('tato_fp','1'); } catch(e){}
   if(window._adminConfigLoaded){
     if(typeof window._onLoginSuccess==='function') window._onLoginSuccess(myUid);
   } else {
@@ -3139,14 +3214,23 @@ document.getElementById('nick-input').addEventListener('keydown',e=>{ if(e.key==
 window._adminConfigLoaded = false;
 window._pendingLoginUid = null;
 
-/* ── Auto-enter: ข้ามหน้า nick modal เข้าห้องทันที ── */
+/* ── Hero screen: show landing, then enter on button click ── */
 (function(){
   var adj=['quiet','chill','dark','slow','night','deep','soft','cool','late','cozy'];
   var nou=['owl','fox','moon','star','wave','rain','mist','leaf','dusk','dawn'];
   var num=Math.floor(Math.random()*900)+100;
   var autoName=adj[Math.floor(Math.random()*adj.length)]+'.'+nou[Math.floor(Math.random()*nou.length)]+num;
   document.getElementById('nick-input').value=autoName;
-  window.enterCamp();
+  /* Check if returning visitor (has session fingerprint) */
+  var fp = null;
+  try { fp = sessionStorage.getItem('tato_fp'); } catch(e){}
+  if(fp){
+    /* Returning in same session — skip hero, enter directly */
+    window.enterCamp();
+  } else {
+    /* First visit — show hero screen */
+    document.getElementById('nick-overlay').style.display='flex';
+  }
 })();
 
 function sanitize(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;'); }
@@ -3407,7 +3491,20 @@ function startCountdown(){
 
 function startFreeTimer(){
   if(_subStatus!=='free') return;
-  clearTimeout(_paywallTimer); _startedAt=Date.now(); startCountdown();
+  /* Check if session already started (anti-abuse) */
+  var key='tato_free_start';
+  var now=Date.now();
+  try {
+    var saved=parseInt(sessionStorage.getItem(key)||'0',10);
+    if(saved && (now-saved) < (FREE_MS+5000)){
+      /* Resume existing timer */
+      _startedAt=saved;
+    } else {
+      _startedAt=now;
+      sessionStorage.setItem(key,String(now));
+    }
+  } catch(e){ _startedAt=now; }
+  clearTimeout(_paywallTimer); startCountdown();
   _paywallTimer=setTimeout(()=>{ if(_subStatus==='free') showPaywall(); },FREE_MS);
   // Show persistent timer bar (must be flex, not block)
   var bar=document.getElementById('free-timer-bar');
@@ -3454,7 +3551,22 @@ function showPaywall(){
   }
 }
 
-window.refreshForFree=function(){ document.getElementById('paywall-overlay').classList.remove('show'); location.reload(); };
+window.refreshForFree=function(){
+  /* Clear session fingerprint so hero shows again — but DON'T reset timer
+     Timer resets are tracked via sessionStorage to prevent abuse */
+  var key = 'tato_free_start';
+  var now = Date.now();
+  var started = null;
+  try { started = parseInt(sessionStorage.getItem(key)||'0',10); } catch(e){}
+  if(started && (now - started) < (window.FREE_MS||30*60*1000)){
+    /* Timer still running — just close paywall, don't reload */
+    document.getElementById('paywall-overlay').classList.remove('show');
+    return;
+  }
+  /* Genuine new session — allow reload */
+  try { sessionStorage.removeItem('tato_fp'); sessionStorage.removeItem(key); } catch(e){}
+  location.reload();
+};
 
 /* ── Plan card highlight selection ── */
 window.selectPlanCard = function(plan){
@@ -3698,7 +3810,7 @@ function switchRoom(el,force){
   var idx=parseInt(el.dataset.room);
   if(idx===currentRoomIdx&&!force) return;
   currentRoomIdx=idx; window.currentRoomIdx=idx;
-  localStorage.setItem('tato_last_room',idx);
+  window._store.set('tato_last_room',idx);
   document.querySelectorAll('.room').forEach(r=>r.classList.remove('active'));
   el.classList.add('active');
   var r=ROOMS[idx];
@@ -3732,7 +3844,7 @@ function switchRoom(el,force){
 }
 
 (function(){
-  var saved=parseInt(localStorage.getItem('tato_last_room')||'0',10);
+  var saved=parseInt(window._store.get('tato_last_room')||'0',10);
   if(saved>=0&&saved<ROOMS.length){ var el=document.querySelector('.room[data-room="'+saved+'"]'); if(el) switchRoom(el,true); else renderTrackList(ROOMS[0].trackList); }
   else renderTrackList(ROOMS[0].trackList);
 })();
@@ -3767,20 +3879,52 @@ var activeTrackBtn=null, _pendingYtId=null;
 window.onYouTubeIframeAPIReady=function(){
   ytPlayer=new YT.Player('yt-player',{
     height:'1', width:'1', videoId:ROOMS[0].ytId,
-    playerVars:{ autoplay:0, controls:0, disablekb:1, fs:0, modestbranding:1, playsinline:1, rel:0, enablejsapi:1 },
+    /* origin + nocookie reduces ad frequency significantly */
+    host: 'https://www.youtube-nocookie.com',
+    playerVars:{
+      autoplay:0, controls:0, disablekb:1, fs:0,
+      modestbranding:1, playsinline:1, rel:0, enablejsapi:1,
+      /* These help reduce ads: */
+      iv_load_policy:3,   /* hide video annotations */
+      cc_load_policy:0,
+      origin: window.location.origin || 'https://tato.camp'
+    },
     events:{ onReady:onYtReady, onStateChange:onYtStateChange, onError:onYtError }
   });
 };
 
+/* ── AD-SKIP: ตรวจจับ ad แล้ว skip อัตโนมัติ ── */
+(function(){
+  var _adCheckInterval = null;
+  window._startAdSkipWatcher = function(){
+    clearInterval(_adCheckInterval);
+    _adCheckInterval = setInterval(function(){
+      if(!ytPlayer || typeof ytPlayer.getPlayerState !== 'function') return;
+      /* ถ้า player เล่นอยู่ แต่ duration สั้น (<35s) = likely ad */
+      var state = ytPlayer.getPlayerState();
+      if(state !== 1) return; /* 1 = PLAYING */
+      var dur = ytPlayer.getDuration ? ytPlayer.getDuration() : 0;
+      var cur = ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0;
+      /* Ad มักจะ duration < 35 วินาที และเล่นได้ไม่นาน */
+      if(dur > 0 && dur < 35 && cur < dur){
+        /* Skip to end of ad */
+        ytPlayer.seekTo(dur, true);
+      }
+    }, 800);
+  };
+})();
+
 function onYtReady(e){
   ytReady=true;
-  var vol=parseFloat(localStorage.getItem('tato_volume')||'0.7');
+  var vol=parseFloat(window._store.get('tato_volume')||'0.7');
   var volInt=Math.round(vol*100);
   ytPlayer.setVolume(volInt);
   // sync slider
   var sl=document.getElementById('volume-slider');
   if(sl){ sl.value=volInt; if(typeof _updateVolSliderBg==='function') _updateVolSliderBg(volInt); }
   if(_pendingYtId){ ytPlayer.loadVideoById(_pendingYtId); _pendingYtId=null; }
+  /* Start ad-skip watcher */
+  if(typeof window._startAdSkipWatcher === 'function') window._startAdSkipWatcher();
 }
 
 function onYtStateChange(e){
@@ -3827,12 +3971,12 @@ function _updateVolSliderBg(val){
 window.onVolumeSlider=function(val){
   val=parseInt(val,10);
   if(ytReady&&ytPlayer) ytPlayer.setVolume(val);
-  localStorage.setItem('tato_volume',(val/100).toFixed(2));
+  window._store.set('tato_volume',(val/100).toFixed(2));
   _updateVolSliderBg(val);
 };
 // restore saved volume
 (function(){
-  var vol=parseFloat(localStorage.getItem('tato_volume')||'0.7');
+  var vol=parseFloat(window._store.get('tato_volume')||'0.7');
   var sl=document.getElementById('volume-slider');
   if(sl){ sl.value=Math.round(vol*100); _updateVolSliderBg(Math.round(vol*100)); }
 })();
@@ -3860,8 +4004,8 @@ function loadStats(){ return { totalSecs:parseInt(localStorage.getItem('tato_tot
 function saveStats(s){ localStorage.setItem('tato_total_secs',s.totalSecs); localStorage.setItem(getTodayKey(),s.todaySecs); localStorage.setItem('tato_sessions',s.sessions); localStorage.setItem('tato_last_day',s.lastDay); localStorage.setItem('tato_streak',s.streak); }
 function updateStreak(s){ var today=new Date().toISOString().slice(0,10); if(s.lastDay===today) return s; var yesterday=new Date(Date.now()-86400000).toISOString().slice(0,10); if(s.lastDay===yesterday) s.streak+=1; else if(s.lastDay&&s.lastDay!==today) s.streak=1; else s.streak=Math.max(s.streak,1); s.lastDay=today; return s; }
 
-var focusSecs=parseInt(localStorage.getItem('tato_focus_secs')||'0',10);
-setInterval(function(){ focusSecs++; localStorage.setItem('tato_focus_secs',focusSecs); if(focusSecs%30===0){ var s=loadStats(); s.totalSecs+=30; s.todaySecs+=30; s=updateStreak(s); saveStats(s); } },1000);
+var focusSecs=parseInt(window._store.get('tato_focus_secs')||'0',10);
+setInterval(function(){ focusSecs++; window._store.set('tato_focus_secs',focusSecs); if(focusSecs%30===0){ var s=loadStats(); s.totalSecs+=30; s.todaySecs+=30; s=updateStreak(s); saveStats(s); } },1000);
 
 /* Pomodoro */
 var POMO_FOCUS=25*60,POMO_SHORT=5*60,POMO_LONG=15*60;
@@ -3988,7 +4132,7 @@ function toggleAmbientPanel(){ var panel=document.getElementById('ambient-mixer-
       <div style="font-size:10px;color:rgba(242,242,242,.4);letter-spacing:.08em;">★★★★★ &nbsp;"เปิดทำงานทุกคืน"</div>
       <div style="font-size:10px;color:rgba(242,242,242,.4);letter-spacing:.08em;">🔥 &nbsp;<span id="sp-members">—</span> members ทั้งหมด</div>
     </div>
-    <p class="paywall-sub">ขอบคุณที่มาอยู่ที่ TATO Camp 🏕<br>upgrade เพื่อใช้งานไม่จำกัด หรือ refresh เพื่อรับ 30 นาทีใหม่</p>
+    <p class="paywall-sub">ขอบคุณที่มาอยู่ที่ TATO Camp 🏕<br>upgrade เพื่อใช้งานไม่จำกัด ไม่มีโฆษณา ทุก room</p>
     <div class="plan-grid" id="plan-grid">
       <div class="plan-card" id="plan-card-free" onclick="selectPlanCard('free')">
         <div class="plan-tag free">ฟรี</div>
@@ -4031,7 +4175,7 @@ function toggleAmbientPanel(){ var panel=document.getElementById('ambient-mixer-
       <button onclick="savePaywallEmail()" style="padding:9px 16px;background:rgba(255,112,0,.15);border:1px solid rgba(255,112,0,.4);color:#FF7000;font-family:'Inter',sans-serif;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;border-radius:4px;white-space:nowrap;flex-shrink:0;">บันทึก</button>
     </div>
     <div style="margin-top:12px;">
-      <button class="paywall-footer" onclick="refreshForFree()">↺ Refresh เพื่อรับ 30 นาทีใหม่</button>
+      <button class="paywall-footer" onclick="refreshForFree()">↺ กลับหน้าหลัก</button>
     </div>
   </div>
 </div>
@@ -4392,7 +4536,17 @@ setInterval(function(){
   if(!nav||!mini) return;
   function update(){
     var navH=nav.offsetHeight||0;
-    mini.style.bottom=navH+'px';
+    /* Add safe-area-inset-bottom for iPhone notch */
+    var safeBottom=0;
+    try{
+      var safe=getComputedStyle(document.documentElement).getPropertyValue('--sab');
+      safeBottom=parseInt(safe)||0;
+    }catch(e){}
+    mini.style.bottom=(navH)+'px';
+    /* Ensure the page body bottom padding also includes mini player height */
+    var miniH=(document.getElementById('mini-player-bar')||{}).offsetHeight||56;
+    var totalBottom=navH+miniH;
+    document.documentElement.style.setProperty('--mobile-bottom-offset', totalBottom+'px');
   }
   update();
   window.addEventListener('resize',update);
@@ -4827,7 +4981,28 @@ console.log('%cGet UID: window._getMyUid()', 'color:rgba(255,255,255,.3);font-si
         <div style="grid-column:1/-1;">
           <button onclick="adminSaveSettings()" class="adm4-btn-orange">💾 SAVE ALL SETTINGS</button>
           <div id="adm-settings-result" style="font-family:'JetBrains Mono',monospace;font-size:11px;min-height:16px;letter-spacing:.1em;text-align:center;margin-top:8px;"></div>
-          <div id="adm-rules-hint" style="display:none;margin-top:8px;padding:10px 12px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:5px;font-size:10px;color:rgba(239,68,68,.8);font-family:'JetBrains Mono',monospace;line-height:1.7;">⚠ ต้องแก้ Firebase Rules<br>Firebase Console → Realtime Database → Rules</div>
+          <div id="adm-rules-hint" style="display:none;margin-top:8px;padding:10px 12px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:5px;font-size:10px;color:rgba(239,68,68,.8);font-family:'JetBrains Mono',monospace;line-height:1.7;">
+  ⚠ ต้องแก้ Firebase Rules<br>
+  Firebase Console → Realtime Database → Rules → ใส่:<br>
+  <code style="font-size:9px;color:rgba(255,112,0,.8);display:block;margin-top:6px;white-space:pre-wrap;">{
+  "rules": {
+    "subscriptions": {
+      ".read": "auth != null",
+      "$uid": { ".write": false }
+    },
+    "admin_config": {
+      ".read": true,
+      ".write": false
+    },
+    "presence": { ".read": true, ".write": "auth != null" },
+    "chat": { ".read": true, ".write": "auth != null" },
+    "payment_intent": { ".read": false, ".write": "auth != null" },
+    "notifications": {
+      "$uid": { ".read": "auth != null && auth.uid == $uid", ".write": false }
+    }
+  }
+}</code>
+</div>
         </div>
 
       </div>
@@ -6443,7 +6618,12 @@ window.showTatoToast = showTatoToast;
 
 // ── Slip Webhook — token อยู่ใน Make.com/backend เท่านั้น ──
 // ใส่ Make.com webhook URL ของคุณตรงนี้:
-var SLIP_WEBHOOK_URL = 'YOUR_MAKE_WEBHOOK_URL_HERE';
+var SLIP_WEBHOOK_URL = 'YOUR_MAKE_WEBHOOK_URL_HERE'; // ⚠ TODO: ใส่ Make.com webhook URL ของคุณ
+
+/* Validate webhook URL before sending */
+function _isWebhookConfigured(){
+  return SLIP_WEBHOOK_URL && SLIP_WEBHOOK_URL !== 'YOUR_MAKE_WEBHOOK_URL_HERE' && SLIP_WEBHOOK_URL.startsWith('http');
+}
 var TG_ADMIN_CHAT = '5137076057'; // chat_id ไม่ใช่ secret ใส่ได้
 
 var _slipFile = null;
@@ -6546,6 +6726,19 @@ async function confirmSlipPayment() {
     for (var bi = 0; bi < byteChars.length; bi++) byteArr[bi] = byteChars.charCodeAt(bi);
     webhookForm.append('photo', new Blob([byteArr], { type: mimeType }), 'slip.jpg');
 
+    if(!_isWebhookConfigured()){
+      /* Webhook not set — skip fetch, just save to Firebase for manual admin review */
+      if(resultEl){ resultEl.style.color='#FF7000'; resultEl.textContent='⏳ บันทึกแล้ว! Admin จะตรวจสอบใน Dashboard'; }
+      if(btn){ btn.style.background='#FF7000'; btn.style.opacity='1'; btn.textContent='⏳ รอ Admin อนุมัติ…'; }
+      if(window._fbSet && window._fbRef){
+        window._fbSet(window._fbRef('payment_intent/'+userId), {
+          name:userName||'guest', plan:planKey, amount:price,
+          slipCode:slipCode, t:Date.now(), status:'pending'
+        }).catch(function(){});
+      }
+      _startApprovalListener(userId, btn, resultEl);
+      return;
+    }
     var response = await fetch(SLIP_WEBHOOK_URL, { method: 'POST', body: webhookForm });
 
     if (response.ok) {
