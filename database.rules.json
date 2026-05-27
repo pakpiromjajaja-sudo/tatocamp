@@ -1,0 +1,44 @@
+{
+  "rules": {
+    "presence": {
+      "$uid": {
+        ".read": "auth != null || true",
+        ".write": "$uid === auth.uid || auth == null"
+      }
+    },
+    "chat": {
+      ".read": true,
+      ".write": "auth != null || true"
+    },
+    "subscriptions": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": false
+      }
+    },
+    "payment_intent": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid || auth == null"
+      }
+    },
+    "notifications": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": false
+      }
+    },
+    "admin_config": {
+      ".read": true,
+      ".write": false
+    },
+    "email_list": {
+      ".read": false,
+      ".write": true
+    },
+    "admin_tracks": {
+      ".read": true,
+      ".write": false
+    }
+  }
+}
