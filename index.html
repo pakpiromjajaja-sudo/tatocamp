@@ -49,6 +49,99 @@
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="TATO Digital Camp — Chiang Mai" />
 <meta name="twitter:description" content="Ambient co-working for digital nomads. Focus rooms, lofi music, live community. Try free." />
+<!-- ══ JSON-LD Structured Data — LocalBusiness + WebSite ══ -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": ["CoworkingSpace", "LocalBusiness"],
+      "@id": "https://tato.camp/#business",
+      "name": "TATO Digital Camp",
+      "alternateName": ["TATO Camp", "tatodigitalCAMP"],
+      "description": "Ambient co-working space and digital café in Chiang Mai, Thailand — designed for remote workers, digital nomads, and freelancers. High-speed WiFi, lofi music, live community. Plans from ฿19/day.",
+      "url": "https://tato.camp",
+      "logo": "https://tato.camp/logo.png",
+      "image": "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1200",
+      "telephone": "+66-64-293-6615",
+      "email": "hello@tato.camp",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Chiang Mai",
+        "addressRegion": "Chiang Mai",
+        "addressCountry": "TH"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 18.7883,
+        "longitude": 98.9853
+      },
+      "areaServed": {
+        "@type": "City",
+        "name": "Chiang Mai"
+      },
+      "priceRange": "฿฿",
+      "currenciesAccepted": "THB, USD",
+      "paymentAccepted": "PromptPay, Credit Card, Stripe",
+      "openingHours": "Mo-Su 00:00-24:00",
+      "amenityFeature": [
+        { "@type": "LocationFeatureSpecification", "name": "High-Speed WiFi", "value": true },
+        { "@type": "LocationFeatureSpecification", "name": "1 Gbps Internet", "value": true },
+        { "@type": "LocationFeatureSpecification", "name": "Power Outlets", "value": true },
+        { "@type": "LocationFeatureSpecification", "name": "Ambient Music", "value": true },
+        { "@type": "LocationFeatureSpecification", "name": "Focus Rooms", "value": true },
+        { "@type": "LocationFeatureSpecification", "name": "Digital Community", "value": true }
+      ],
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "TATO Camp Membership Plans",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "name": "Day Pass",
+            "price": "19",
+            "priceCurrency": "THB",
+            "description": "Full access for 24 hours"
+          },
+          {
+            "@type": "Offer",
+            "name": "Monthly Plan",
+            "price": "79",
+            "priceCurrency": "THB",
+            "description": "Unlimited monthly access"
+          },
+          {
+            "@type": "Offer",
+            "name": "Lifetime Plan",
+            "price": "999",
+            "priceCurrency": "THB",
+            "description": "One-time lifetime access"
+          }
+        ]
+      },
+      "sameAs": [
+        "https://www.instagram.com/tatodigitalcamp",
+        "https://lin.ee/5BlT5pH"
+      ],
+      "keywords": "coworking chiang mai, digital nomad chiang mai, co-working space thailand, remote work chiang mai, ambient work, lofi coworking"
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://tato.camp/#website",
+      "url": "https://tato.camp",
+      "name": "TATO Digital Camp",
+      "description": "Chiang Mai's ambient co-working platform for remote workers and digital nomads",
+      "publisher": { "@id": "https://tato.camp/#business" },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://tato.camp/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+  ]
+}
+</script>
+
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="TATO Camp" />
@@ -3480,7 +3573,6 @@ window._genSlipCode = function(){
 window.choosePlan = function(plan){
   if(plan==='free'){ window.refreshForFree(); return; }
   window._currentPlan = plan;
-  initPayModal();
   var cfg = PAYMENT_CONFIG.prices[plan]; if(!cfg) return;
   var phone = PAYMENT_CONFIG.promptpayNumber.replace(/\D/g,'');
   var amount = cfg.thb;
@@ -3489,6 +3581,28 @@ window.choosePlan = function(plan){
 
   // Generate a fresh slip code for this payment attempt
   window._currentSlipCode = window._genSlipCode();
+
+  // ── International users → Stripe modal (card payment UI) ──
+  if (isIntl) {
+    if (typeof window._initStripeModal === 'function') {
+      window._initStripeModal(plan, cfg, displayAmount, window._myUid || 'guest', window.myName || '');
+      // Also fire the LINE notification for admin awareness
+      try {
+        var notifyMsg = '🔔 International customer selected plan!\n'
+          + '📦 Plan: '+cfg.label+' ('+plan+')\n'
+          + '💰 Amount: '+displayAmount+'\n'
+          + '🆔 UID: '+(window._myUid||'guest')+'\n'
+          + '⏰ '+new Date().toLocaleString('en-US')+'\n'
+          + '→ Activate after payment confirmed';
+        window._adminNotifyUrl = PAYMENT_CONFIG.lineContact+'?text='+encodeURIComponent(notifyMsg);
+        var badge = document.getElementById('adm-payment-badge');
+        if(badge){ badge.style.display='inline-flex'; badge.textContent='NEW'; }
+      }catch(e){}
+      return; // Don't show PromptPay modal for international users
+    }
+  }
+
+  initPayModal();
 
   var isIntl = PAYMENT_CONFIG.currency === 'USD';
 
@@ -3587,7 +3701,7 @@ window.choosePlan = function(plan){
   // Inject "already sent" helper button (safe to call multiple times)
   setTimeout(function(){ window._injectDoneBtnIfNeeded && window._injectDoneBtnIfNeeded(); }, 50);
   // Save payment intent (includes slipCode)
-  try{ set(ref(db,'payment_intent/'+myUid),{plan:plan,amount:amount,name:myName,email:window._myEmail||'',slipCode:window._currentSlipCode||'',t:serverTimestamp()}); }catch(e){}
+  try{ set(ref(db,'payment_intent/'+myUid),{plan:plan,amount:amount,name:myName,email:window._myEmail||'',slipCode:window._currentSlipCode||'',currency:isIntl?'USD':'THB',intl:!!isIntl,t:serverTimestamp()}); }catch(e){}
   try{
     var notifyMsg = _isInternational
       ? '🔔 New customer selected a plan!\n'
@@ -3792,6 +3906,160 @@ function initPayModal(){
   document.body.appendChild(modal);
 
 }
+
+/* ── International Stripe Checkout UI ──────────────────────────
+   Called instead of the PromptPay flow when _isInternational===true.
+   With a Stripe key: shows card form + Stripe.js Elements.
+   Without a Stripe key: shows LINE contact + card payment request flow.
+   ─────────────────────────────────────────────────────────────*/
+window._initStripeModal = function(plan, cfg, displayAmount, myUid, myName) {
+  var key = window.PAYMENT_CONFIG && window.PAYMENT_CONFIG.stripePublishableKey;
+  var hasStripe = key && key.indexOf('pk_') === 0 && key !== 'pk_live_YOUR_STRIPE_KEY' && key.indexOf('YOUR') === -1;
+  window._stripeDisplayAmount = displayAmount;
+
+  var sm = document.getElementById('stripe-modal');
+  if (!sm) {
+    sm = document.createElement('div');
+    sm.id = 'stripe-modal';
+    sm.style.cssText = 'position:fixed;inset:0;z-index:950;background:rgba(10,10,10,.97);display:none;align-items:center;justify-content:center;padding:16px;overflow-y:auto;';
+    document.body.appendChild(sm);
+  }
+
+  var cardFormHtml = hasStripe ? (
+    '<div id="sm-stripe-wrap">' +
+    '<div style="margin-bottom:12px;">' +
+    '<label style="font-family:JetBrains Mono,monospace;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(242,242,242,.38);display:block;margin-bottom:5px;">Name on Card</label>' +
+    '<input id="sm-card-name" type="text" placeholder="John Smith" autocomplete="cc-name" style="width:100%;padding:11px 13px;background:#1a1a1a;border:1px solid rgba(90,90,90,.5);color:#F2F2F2;font-family:Inter,sans-serif;font-size:13px;outline:none;border-radius:5px;box-sizing:border-box;transition:border-color .2s;" onfocus="this.style.borderColor='rgba(255,112,0,.5)'" onblur="this.style.borderColor='rgba(90,90,90,.5)'">' +
+    '</div>' +
+    '<div style="margin-bottom:14px;">' +
+    '<label style="font-family:JetBrains Mono,monospace;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(242,242,242,.38);display:block;margin-bottom:5px;">Card Details</label>' +
+    '<div id="sm-card-element" style="padding:11px 13px;background:#1a1a1a;border:1px solid rgba(90,90,90,.5);border-radius:5px;transition:border-color .2s;min-height:44px;"></div>' +
+    '<div id="sm-card-error" style="font-family:JetBrains Mono,monospace;font-size:10px;color:#EF4444;margin-top:6px;min-height:14px;"></div>' +
+    '</div>' +
+    '<button id="sm-pay-btn" onclick="window._stripeSubmitPayment()" style="width:100%;padding:13px;background:#FF7000;color:#0D0D0D;border:none;font-family:Inter,sans-serif;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;border-radius:6px;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s;box-sizing:border-box;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">' +
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>' +
+    'Pay ' + displayAmount +
+    '</button>' +
+    '<div id="sm-result" style="font-family:JetBrains Mono,monospace;font-size:10px;text-align:center;min-height:16px;margin-top:8px;letter-spacing:.06em;"></div>' +
+    '<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06);">' +
+    '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' +
+    '<span style="font-family:JetBrains Mono,monospace;font-size:9px;color:rgba(242,242,242,.25);letter-spacing:.1em;">Secured by Stripe · SSL encrypted</span>' +
+    '</div>' +
+    '</div>'
+  ) : (
+    '<div style="text-align:center;padding:6px 0 16px;">' +
+    '<div style="font-size:36px;margin-bottom:14px;">💳</div>' +
+    '<div style="font-family:Inter,sans-serif;font-size:15px;font-weight:700;color:#F2F2F2;margin-bottom:8px;">Card Payment Available</div>' +
+    '<div style="font-family:JetBrains Mono,monospace;font-size:10px;color:rgba(242,242,242,.45);line-height:1.8;margin-bottom:20px;">We accept Visa, Mastercard & most international cards.<br>Message us on LINE — we reply within minutes.</div>' +
+    '<a id="sm-line-btn" href="#" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:13px;background:#06C755;color:#fff;text-decoration:none;font-family:Inter,sans-serif;font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;border-radius:6px;box-sizing:border-box;transition:opacity .2s;margin-bottom:12px;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">' +
+    '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.1 2 11.1c0 3.1 1.7 5.9 4.3 7.7v3.2l3-1.7c.8.2 1.6.3 2.7.3 5.52 0 10-4.1 10-9.1S17.52 2 12 2z"/></svg>' +
+    'Message us on LINE' +
+    '</a>' +
+    '<div style="font-family:JetBrains Mono,monospace;font-size:9px;color:rgba(242,242,242,.28);letter-spacing:.08em;line-height:1.7;padding:10px 12px;background:rgba(255,255,255,.03);border-radius:5px;border:1px solid rgba(255,255,255,.06);text-align:left;">' +
+    'Tell us:<br>' +
+    '· Plan: ' + cfg.label + ' (' + displayAmount + ')<br>' +
+    '· Your UID: <span style="color:rgba(255,112,0,.55);">' + myUid + '</span><br>' +
+    'We will send you a secure card payment link.' +
+    '</div>' +
+    '</div>'
+  );
+
+  sm.innerHTML =
+    '<div style="background:#141414;border:1px solid rgba(90,90,90,.5);padding:28px 24px;max-width:420px;width:100%;position:relative;border-radius:10px;box-shadow:0 12px 48px rgba(0,0,0,.8);">' +
+    '<div style="position:absolute;top:-2px;left:-2px;width:20px;height:20px;border-top:3px solid #FF7000;border-left:3px solid #FF7000;border-radius:8px 0 0 0;"></div>' +
+    '<div style="position:absolute;bottom:-2px;right:-2px;width:20px;height:20px;border-bottom:3px solid #D45D00;border-right:3px solid #D45D00;border-radius:0 0 8px 0;"></div>' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">' +
+    '<div>' +
+    '<div style="font-family:Inter,sans-serif;font-size:9px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#FF7000;margin-bottom:4px;">' + cfg.emoji + ' ' + cfg.label + '</div>' +
+    '<h2 style="font-family:Inter,sans-serif;font-size:20px;font-weight:700;color:#F2F2F2;letter-spacing:-.01em;margin:0;">Pay with Card</h2>' +
+    '<p style="font-size:10px;color:rgba(242,242,242,.4);margin-top:3px;font-family:JetBrains Mono,monospace;">Secure international payment · ' + displayAmount + '</p>' +
+    '</div>' +
+    '<div style="font-family:JetBrains Mono,monospace;font-size:28px;font-weight:300;color:#FF7000;">' + displayAmount + '</div>' +
+    '</div>' +
+    cardFormHtml +
+    '<button onclick="document.getElementById('stripe-modal').style.display='none'" style="background:none;border:none;color:rgba(242,242,242,.3);font-size:10px;cursor:pointer;font-family:JetBrains Mono,monospace;padding:6px;letter-spacing:.06em;transition:color .15s;display:block;margin:10px auto 0;" onmouseover="this.style.color='rgba(242,242,242,.7)'" onmouseout="this.style.color='rgba(242,242,242,.3)'">← Back to plans</button>' +
+    '</div>';
+
+  if (!hasStripe) {
+    var lineBtn = sm.querySelector('#sm-line-btn');
+    if (lineBtn) {
+      var lineMsg = 'Hi! I want to pay for TATO ' + cfg.label + ' ' + displayAmount + ' \u00b7 UID:' + myUid + ' \u2014 please send card payment link \ud83d\ude4f';
+      lineBtn.href = ((window.PAYMENT_CONFIG && window.PAYMENT_CONFIG.lineContact) || '#') + '?text=' + encodeURIComponent(lineMsg);
+    }
+  }
+
+  sm.style.display = 'flex';
+
+  if (hasStripe) {
+    window._stripeMount(key, cfg, displayAmount, myUid, myName);
+  }
+};
+
+/* ── Stripe.js: lazy-load SDK and mount Elements ── */
+window._stripeMount = function(pubKey, cfg, displayAmount, myUid, myName) {
+  function doMount() {
+    try {
+      var stripe = window.Stripe(pubKey);
+      var elements = stripe.elements({ locale: 'en' });
+      var card = elements.create('card', {
+        style: {
+          base: { color: '#F2F2F2', fontFamily: "'JetBrains Mono', monospace", fontSize: '14px', fontSmoothing: 'antialiased', '::placeholder': { color: 'rgba(242,242,242,.3)' } },
+          invalid: { color: '#EF4444' }
+        }
+      });
+      card.mount('#sm-card-element');
+      card.on('focus', function(){ var el=document.getElementById('sm-card-element'); if(el) el.style.borderColor='rgba(255,112,0,.5)'; });
+      card.on('blur',  function(){ var el=document.getElementById('sm-card-element'); if(el) el.style.borderColor='rgba(90,90,90,.5)'; });
+      card.on('change', function(e){ var err=document.getElementById('sm-card-error'); if(err) err.textContent=e.error?e.error.message:''; });
+      window._stripeCard = card;
+      window._stripeInstance = stripe;
+    } catch(e) { console.warn('Stripe mount failed:', e); }
+  }
+  if (window.Stripe) { setTimeout(doMount, 50); return; }
+  var s = document.createElement('script');
+  s.src = 'https://js.stripe.com/v3/';
+  s.onload = function(){ setTimeout(doMount, 50); };
+  document.head.appendChild(s);
+};
+
+/* ── Stripe payment submission ──
+   Expects POST /create-checkout-session → { url } (Stripe hosted page)
+   See: https://stripe.com/docs/checkout/quickstart
+   ──────────────────────────────── */
+window._stripeSubmitPayment = async function() {
+  var btn = document.getElementById('sm-pay-btn');
+  var resultEl = document.getElementById('sm-result');
+  var nameVal = (document.getElementById('sm-card-name') || {}).value || '';
+
+  if (!nameVal.trim()) {
+    if (resultEl) { resultEl.style.color = '#EF4444'; resultEl.textContent = 'Please enter the name on your card'; }
+    return;
+  }
+  if (!window._stripeInstance || !window._stripeCard) {
+    if (resultEl) { resultEl.style.color = '#EF4444'; resultEl.textContent = 'Payment form not ready — please refresh'; }
+    return;
+  }
+  if (btn) { btn.disabled = true; btn.style.opacity = '.6'; btn.textContent = 'Processing…'; }
+  if (resultEl) { resultEl.style.color = 'rgba(242,242,242,.4)'; resultEl.textContent = 'Contacting payment server…'; }
+
+  try {
+    var plan = window._currentPlan || 'monthly';
+    var uid  = window._myUid || 'guest';
+    var resp = await fetch('/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan: plan, uid: uid, name: nameVal })
+    });
+    if (resp.ok) {
+      var data = await resp.json();
+      if (data.url) { window.location.href = data.url; return; }
+    }
+    throw new Error('Backend not configured. Set up POST /create-checkout-session — see https://stripe.com/docs/checkout/quickstart');
+  } catch (err) {
+    if (resultEl) { resultEl.style.color = '#EF4444'; resultEl.textContent = String(err.message || 'Payment failed — please try again'); }
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.textContent = 'Pay ' + (window._stripeDisplayAmount || ''); }
+  }
+};
 
 // choosePlan is defined inside the Firebase module above — do not redefine here
 
@@ -6141,8 +6409,9 @@ function adminV2LoadPayments(){
           '<div class="adm2-pay-row-meta">🕐 '+timeStr+'</div>'+
         '</div>'+
         '<div style="text-align:right;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:5px;">'+
-          '<div class="adm2-pay-amount">฿'+pi.amount+'</div>'+
+          '<div class="adm2-pay-amount">'+(pi.currency==='USD'?'$':'฿')+pi.amount+'</div>'+
           '<span class="adm2-badge '+planBadge+'">'+pi.plan+'</span>'+
+          (pi.intl?'<span style="font-size:7px;padding:2px 6px;background:rgba(99,179,237,.1);border:1px solid rgba(99,179,237,.3);color:#63B3ED;border-radius:3px;font-family:JetBrains Mono,monospace;">🌍 INTL</span>':'')+
         '</div>'+
         '<div style="display:flex;flex-direction:column;gap:5px;margin-left:8px;">'+
         '<button class="adm2-activate-row-btn" data-uid="'+uid+'" data-plan="'+(pi.plan||'monthly')+'" data-slip="'+(pi.slipCode||'')+'" onclick="adm2ActivateFromRow(this)" '+(alreadyActive?'style="opacity:.6;" title="Activated แล้ว — กดอีกครั้งได้"':'')+'>'+(alreadyActive?'✓ Done':'✅ Approve')+'</button>'+

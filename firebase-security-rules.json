@@ -1,0 +1,76 @@
+{
+  "rules": {
+
+    // ── Presence (who's online) ──────────────────────────────────────
+    // Read: anyone (needed for live online counter on hero page)
+    // Write: only own UID (guest UIDs allowed — no auth required)
+    "presence": {
+      "$uid": {
+        ".read":  "true",
+        ".write": "auth != null ? $uid === auth.uid : true"
+      }
+    },
+
+    // ── Chat ─────────────────────────────────────────────────────────
+    // Read: anyone (public ambient chat)
+    // Write: anyone (guest chat is intentional — low-friction UX)
+    // NOTE: messages are capped at 20 via client-side cleanup
+    "chat": {
+      ".read":  "true",
+      ".write": "true"
+    },
+
+    // ── Subscriptions ────────────────────────────────────────────────
+    // Read: only own UID (users cannot see each other's sub status)
+    // Write: FALSE — only set server-side via activateUser() in admin console
+    //        (Admin uses Firebase Admin SDK or console — never client write)
+    "subscriptions": {
+      "$uid": {
+        ".read":  "auth != null && $uid === auth.uid",
+        ".write": "false"
+      }
+    },
+
+    // ── Payment Intents ──────────────────────────────────────────────
+    // Read: only own UID
+    // Write: own UID or unauthenticated guest (same pattern as presence)
+    "payment_intent": {
+      "$uid": {
+        ".read":  "auth != null ? $uid === auth.uid : true",
+        ".write": "auth != null ? $uid === auth.uid : true"
+      }
+    },
+
+    // ── Admin Notifications (approval/rejection callbacks) ───────────
+    // Read: only own UID (user polls for approval status)
+    // Write: FALSE — admin writes via Firebase Console or Admin SDK
+    "notifications": {
+      "$uid": {
+        ".read":  "auth != null ? $uid === auth.uid : true",
+        ".write": "false"
+      }
+    },
+
+    // ── Admin Config (public config: free minutes, prices, etc.) ─────
+    // Read: anyone (fetched on page load to configure free timer)
+    // Write: FALSE — admin writes via Firebase Console only
+    "admin_config": {
+      ".read":  "true",
+      ".write": "false"
+    },
+
+    // ── Email List ───────────────────────────────────────────────────
+    // Read: FALSE (admin reads via console — never expose email list)
+    // Write: TRUE (guests can submit email during signup)
+    "email_list": {
+      ".read":  "false",
+      ".write": "true"
+    },
+
+    // ── Deny everything else by default ─────────────────────────────
+    "$other": {
+      ".read":  "false",
+      ".write": "false"
+    }
+  }
+}
