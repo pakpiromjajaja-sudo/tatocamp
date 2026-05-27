@@ -1,11 +1,54 @@
 <!DOCTYPE html>
+<!--
+  ╔══════════════════════════════════════════════════════════════════╗
+  ║  TATO DIGITAL CAMP — Deployment Checklist                        ║
+  ║  Before going live, complete these steps:                        ║
+  ╠══════════════════════════════════════════════════════════════════╣
+  ║                                                                  ║
+  ║  1. HOSTING (Required for Firebase Auth to work)                 ║
+  ║     • Deploy to: Vercel / Netlify / Firebase Hosting             ║
+  ║     • Add your domain to Firebase Console →                      ║
+  ║       Authentication → Settings → Authorized domains            ║
+  ║                                                                  ║
+  ║  2. FIREBASE SECURITY RULES (Search "FIREBASE SECURITY RULES"   ║
+  ║     in this file for the rules to copy-paste)                    ║
+  ║                                                                  ║
+  ║  3. MAKE.COM WEBHOOK (Search "YOUR_MAKE_WEBHOOK_URL_HERE")       ║
+  ║     • Create scenario: Webhook → Telegram notification           ║
+  ║     • Replace with your webhook URL                              ║
+  ║     OR add <meta name="make-webhook-url" content="YOUR_URL">     ║
+  ║                                                                  ║
+  ║  4. INTERNATIONAL PAYMENTS (Optional — for USD/global)           ║
+  ║     • Create Stripe account at stripe.com                        ║
+  ║     • Add pk_live_YOUR_KEY to stripePublishableKey in JS         ║
+  ║     • Set up Stripe Checkout on your backend                     ║
+  ║                                                                  ║
+  ║  5. SEO & DISCOVERY                                              ║
+  ║     • Submit to Google Search Console                            ║
+  ║     • List on nomadlist.com, coworker.com, workfrom.co           ║
+  ║     • Set og:image to your actual screenshot                     ║
+  ║                                                                  ║
+  ╚══════════════════════════════════════════════════════════════════╝
+-->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>TATO Digital Camp</title>
-<meta name="description" content="A cinematic digital café for night people. Focus, relax, and work quietly together." />
+<title>TATO Digital Camp — Chiang Mai's Ambient Co-working Space</title>
+<meta name="description" content="A cinematic ambient co-working platform for remote workers & digital nomads in Chiang Mai. Focus rooms, lo-fi music, live community. From $1/day." />
+<meta name="keywords" content="coworking chiang mai, digital nomad chiang mai, remote work thailand, ambient work music, lofi coworking, focus space chiang mai" />
 <meta name="theme-color" content="#0D0D0D" />
+
+<!-- Open Graph for social sharing -->
+<meta property="og:title" content="TATO Digital Camp — Chiang Mai's Ambient Co-working" />
+<meta property="og:description" content="Focus rooms, ambient music, live community. The digital café for remote workers in Chiang Mai. Try free for 30 mins." />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1200" />
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="TATO Digital Camp — Chiang Mai" />
+<meta name="twitter:description" content="Ambient co-working for digital nomads. Focus rooms, lofi music, live community. Try free." />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2370,8 +2413,8 @@ body::after {
         onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 28px rgba(255,112,0,.5)'"
         onmouseout="this.style.transform='';this.style.boxShadow=''">
         <span style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;">
-          <span id="hero-free-label" style="font-size:15px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#0D0D0D;line-height:1;">เข้าใช้ฟรี 30 นาที</span>
-          <span style="font-size:10px;font-weight:500;letter-spacing:.08em;color:rgba(0,0,0,.55);text-transform:uppercase;">ไม่ต้องสมัคร · เล่นได้เลย</span>
+          <span id="hero-free-label" style="font-size:15px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#0D0D0D;line-height:1;">Try Free · 30 mins</span>
+          <span id="hero-free-sub" style="font-size:10px;font-weight:500;letter-spacing:.08em;color:rgba(0,0,0,.55);text-transform:uppercase;">No signup · Enter instantly</span>
         </span>
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0D0D0D" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
       </button>
@@ -2379,14 +2422,20 @@ body::after {
       <!-- Free timer badge -->
       <div style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:4px;">
         <span style="width:7px;height:7px;background:#22C55E;border-radius:50%;flex-shrink:0;animation:pulse 2s infinite;"></span>
-        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(242,242,242,.5);letter-spacing:.1em;">ฟรี 30 นาที → หลังจากนั้นเลือก plan</span>
+        <span id="hero-free-note" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(242,242,242,.5);letter-spacing:.1em;">Free 30 mins → then choose a plan from $1</span>
       </div>
 
       <!-- Watch intro small link -->
       <button onclick="heroPlayPreview()" style="display:flex;align-items:center;gap:8px;background:transparent;border:none;font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(242,242,242,.4);cursor:pointer;padding:0;transition:color .2s;" onmouseover="this.style.color='rgba(242,242,242,.7)'" onmouseout="this.style.color='rgba(242,242,242,.4)'">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5l11 7-11 7V5z"/></svg>
-        ดูตัวอย่าง
+        <span id="hero-preview-label">Watch preview</span>
       </button>
+
+      <!-- 🌍 Onboarding hint for international users -->
+      <div id="hero-intl-hint" style="display:none;padding:10px 16px;background:rgba(255,112,0,.06);border:1px solid rgba(255,112,0,.2);border-radius:4px;text-align:left;">
+        <div style="font-family:'Inter',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#FF7000;margin-bottom:4px;">🌏 Digital Nomad?</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(242,242,242,.45);line-height:1.6;">Chiang Mai's ambient co-working platform.<br>Plans from $1/day · No contract · Cancel anytime.</div>
+      </div>
 
     </div>
 
@@ -2412,7 +2461,7 @@ body::after {
       <a href="#" style="font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:rgba(242,242,242,.5);text-decoration:none;" onmouseover="this.style.color='#F2F2F2'" onmouseout="this.style.color='rgba(242,242,242,.5)'">YOUTUBE</a>
     </div>
 
-    <!-- Numbers -->
+    <!-- Numbers — with live social proof -->
     <div style="display:flex;gap:48px;align-items:flex-end;">
       <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
         <div id="hero-stat-tracks" style="font-family:'Inter',sans-serif;font-size:clamp(24px,2.8vw,36px);font-weight:900;color:#F2F2F2;letter-spacing:-.02em;line-height:1;">8</div>
@@ -2422,9 +2471,13 @@ body::after {
         <div style="font-family:'Inter',sans-serif;font-size:clamp(24px,2.8vw,36px);font-weight:900;color:#F2F2F2;letter-spacing:-.02em;line-height:1;">6</div>
         <div style="font-size:9px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(242,242,242,.5);">Rooms</div>
       </div>
+      <!-- 🔴 Live online count -->
       <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
-        <div style="font-family:'Inter',sans-serif;font-size:clamp(24px,2.8vw,36px);font-weight:900;color:#F2F2F2;letter-spacing:-.02em;line-height:1;">∞</div>
-        <div style="font-size:9px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(242,242,242,.5);">Vibes</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="width:8px;height:8px;background:#22C55E;border-radius:50%;animation:pulse 2s infinite;flex-shrink:0;"></span>
+          <div id="hero-stat-online" style="font-family:'Inter',sans-serif;font-size:clamp(24px,2.8vw,36px);font-weight:900;color:#22C55E;letter-spacing:-.02em;line-height:1;">—</div>
+        </div>
+        <div style="font-size:9px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(242,242,242,.5);">Online Now</div>
       </div>
     </div>
 
@@ -2535,6 +2588,46 @@ window.heroPlayPreview=function(){
   var idx=0; curPill.forEach(function(p,i){ if(p.style.background==='rgb(255, 112, 0)') idx=i; });
   window.open('https://www.youtube.com/watch?v='+previews[idx],'_blank');
 };
+
+/* ── International UI init ── */
+(function(){
+  var isIntl = typeof _isInternational !== 'undefined' ? _isInternational : false;
+  if(isIntl){
+    var el = document.getElementById('hero-intl-hint');
+    if(el) el.style.display = 'block';
+    var note = document.getElementById('hero-free-note');
+    if(note) note.textContent = 'Free 30 mins → then choose a plan from $1';
+    var sub = document.getElementById('hero-free-sub');
+    if(sub) sub.textContent = 'No signup · Enter instantly';
+    var prev = document.getElementById('hero-preview-label');
+    if(prev) prev.textContent = 'Watch preview';
+  } else {
+    var el = document.getElementById('hero-intl-hint');
+    if(el) el.style.display = 'none';
+    var note = document.getElementById('hero-free-note');
+    if(note) note.textContent = 'ฟรี 30 นาที → หลังจากนั้นเลือก plan';
+    var lbl = document.getElementById('hero-free-label');
+    if(lbl) lbl.textContent = 'เข้าใช้ฟรี 30 นาที';
+    var sub = document.getElementById('hero-free-sub');
+    if(sub) sub.textContent = 'ไม่ต้องสมัคร · เล่นได้เลย';
+    var prev = document.getElementById('hero-preview-label');
+    if(prev) prev.textContent = 'ดูตัวอย่าง';
+  }
+})();
+
+/* ── Live online counter on hero ── */
+window._updateHeroOnlineCount = function(){
+  if(!window._fbOnValue || !window._fbRef) return;
+  try {
+    window._fbOnValue(window._fbRef('presence'), function(snap){
+      var cnt = snap && snap.exists() ? Object.keys(snap.val()).length : 0;
+      var el = document.getElementById('hero-stat-online');
+      if(el) el.textContent = cnt > 0 ? cnt : '—';
+    });
+  } catch(e){}
+};
+// Called again after Firebase loads
+setTimeout(function(){ window._updateHeroOnlineCount && window._updateHeroOnlineCount(); }, 2000);
 </script>
 
 <div class="app">
@@ -2679,7 +2772,7 @@ window.heroPlayPreview=function(){
   <div id="free-timer-bar" style="display:none;flex-shrink:0;background:linear-gradient(90deg,rgba(255,112,0,.14) 0%,rgba(255,112,0,.07) 100%);border-bottom:2px solid rgba(255,112,0,.25);padding:12px 30px;align-items:center;justify-content:space-between;gap:16px;">
     <div style="display:flex;align-items:center;gap:16px;">
       <div style="display:flex;flex-direction:column;gap:2px;">
-        <span style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.22em;color:rgba(255,112,0,.6);text-transform:uppercase;">⏱ เวลาทดลองฟรี</span>
+        <span id="free-timer-top-label" style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.22em;color:rgba(255,112,0,.6);text-transform:uppercase;">⏱ Free Trial</span>
         <div id="free-timer-display" style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:300;color:#FF7000;letter-spacing:.04em;font-variant-numeric:tabular-nums;line-height:1;">30:00</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:4px;">
@@ -2692,7 +2785,7 @@ window.heroPlayPreview=function(){
     <button onclick="document.getElementById('paywall-overlay').classList.add('show');window._updateSocialProof&&window._updateSocialProof();"
       style="padding:8px 18px;background:rgba(255,112,0,.15);border:1px solid rgba(255,112,0,.6);color:#FF7000;font-family:'Inter',sans-serif;font-size:9px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;border-radius:4px;white-space:nowrap;transition:all .2s;"
       onmouseover="this.style.background='rgba(255,112,0,.28)';this.style.borderColor='#FF7000'" onmouseout="this.style.background='rgba(255,112,0,.15)';this.style.borderColor='rgba(255,112,0,.6)'">
-      อัปเกรด →
+      Upgrade →
     </button>
   </div>
 
@@ -2922,15 +3015,75 @@ window.renderPromptPayQR = function(containerId, phone, amount) {
 
 <!-- ══ PAYMENT CONFIG (global, must be before Firebase module) ══ -->
 <script>
+// 🌐 Auto-detect currency based on user locale/timezone
+var _isInternational = (function(){
+  try {
+    var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+    var lang = (navigator.language || '').toLowerCase();
+    var isTH = tz.includes('Bangkok') || tz.includes('Asia/Bangkok') || lang.startsWith('th');
+    return !isTH;
+  } catch(e){ return false; }
+})();
+
 var PAYMENT_CONFIG={
   promptpayNumber:'0642936615',
   lineContact:'https://lin.ee/5BlT5pH',
-  prices:{ day:{thb:19,label:'Day Pass',emoji:'⚡'}, monthly:{thb:79,label:'Monthly',emoji:'🌙'}, lifetime:{thb:999,label:'Lifetime',emoji:'♾️'} }
+  // stripePublishableKey: 'pk_live_YOUR_STRIPE_KEY', // 🔧 Add Stripe key for international payments
+  currency: _isInternational ? 'USD' : 'THB',
+  prices:{
+    day:     { thb:19,  usd:1,  label:'Day Pass', emoji:'⚡', desc:'Try it out — 24hrs access' },
+    monthly: { thb:79,  usd:3,  label:'Monthly',  emoji:'🌙', desc:'Best value — unlimited access' },
+    lifetime:{ thb:999, usd:29, label:'Lifetime',  emoji:'♾️', desc:'One-time — yours forever' }
+  }
 };
 function getQrUrl(amount){ var phone=PAYMENT_CONFIG.promptpayNumber.replace(/\D/g,''); return 'https://promptpay.io/'+phone+'/'+amount+'.png'; }
 </script>
 
 <!-- ══ FIREBASE SDK ══ -->
+<!--
+  🔒 FIREBASE SECURITY RULES — Apply these in Firebase Console → Realtime Database → Rules:
+
+  {
+    "rules": {
+      "presence": {
+        "$uid": {
+          ".read": "auth != null || true",
+          ".write": "$uid === auth.uid || auth == null"
+        }
+      },
+      "chat": {
+        ".read": true,
+        ".write": "auth != null || true"
+      },
+      "subscriptions": {
+        "$uid": {
+          ".read": "$uid === auth.uid",
+          ".write": false
+        }
+      },
+      "payment_intent": {
+        "$uid": {
+          ".read": "$uid === auth.uid",
+          ".write": "$uid === auth.uid || auth == null"
+        }
+      },
+      "notifications": {
+        "$uid": {
+          ".read": "$uid === auth.uid",
+          ".write": false
+        }
+      },
+      "admin_config": {
+        ".read": true,
+        ".write": false
+      },
+      "email_list": {
+        ".read": false,
+        ".write": true
+      }
+    }
+  }
+-->
 <script type="module">
 import { initializeApp }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -3237,16 +3390,17 @@ window._updateSocialProof = function(){
       if(el) el.textContent = (cnt + 128);
     });
   }catch(e){}
-  // Sync plan prices from PAYMENT_CONFIG
+  // Sync plan prices from PAYMENT_CONFIG (auto currency)
   try{
     var cfg=window.PAYMENT_CONFIG;
     if(!cfg||!cfg.prices) return;
+    var isIntl = cfg.currency === 'USD';
     var pDay=document.getElementById('plan-price-day');
     var pMon=document.getElementById('plan-price-monthly');
     var pLif=document.getElementById('plan-price-lifetime');
-    if(pDay) pDay.innerHTML='฿'+cfg.prices.day.thb+' <small>/ วัน</small>';
-    if(pMon) pMon.innerHTML='฿'+cfg.prices.monthly.thb+' <small>/ เดือน</small>';
-    if(pLif) pLif.innerHTML='฿'+cfg.prices.lifetime.thb+' <small>ครั้งเดียว</small>';
+    if(pDay) pDay.innerHTML= isIntl ? '$'+cfg.prices.day.usd+' <small>/ day</small>' : '฿'+cfg.prices.day.thb+' <small>/ วัน</small>';
+    if(pMon) pMon.innerHTML= isIntl ? '$'+cfg.prices.monthly.usd+' <small>/ month</small>' : '฿'+cfg.prices.monthly.thb+' <small>/ เดือน</small>';
+    if(pLif) pLif.innerHTML= isIntl ? '$'+cfg.prices.lifetime.usd+' <small>one-time</small>' : '฿'+cfg.prices.lifetime.thb+' <small>ครั้งเดียว</small>';
   }catch(e){}
 };
 
@@ -3268,6 +3422,8 @@ window.choosePlan = function(plan){
   var cfg = PAYMENT_CONFIG.prices[plan]; if(!cfg) return;
   var phone = PAYMENT_CONFIG.promptpayNumber.replace(/\D/g,'');
   var amount = cfg.thb;
+  var isIntl = PAYMENT_CONFIG.currency === 'USD';
+  var displayAmount = isIntl ? ('$'+cfg.usd) : ('฿'+cfg.thb);
 
   // Generate a fresh slip code for this payment attempt
   window._currentSlipCode = window._genSlipCode();
@@ -3486,8 +3642,8 @@ function initPayModal(){
     <div id="pay-plan-badge" style="display:inline-block;margin-bottom:12px;font-family:Inter,sans-serif;font-size:9px;letter-spacing:.22em;padding:4px 14px;background:rgba(255,112,0,.1);border:1px solid rgba(255,112,0,.3);color:#FF7000;text-transform:uppercase;font-weight:700;border-radius:4px;"></div>
 
     <!-- Title -->
-    <h2 style="font-family:Inter,sans-serif;font-size:20px;font-weight:700;color:#F2F2F2;margin-bottom:4px;letter-spacing:-.01em;">ชำระผ่าน PromptPay</h2>
-    <p style="font-size:10px;color:rgba(242,242,242,.45);margin-bottom:18px;font-family:JetBrains Mono,monospace;">สแกน QR แล้วโอนเงินได้เลย</p>
+    <h2 style="font-family:Inter,sans-serif;font-size:20px;font-weight:700;color:#F2F2F2;margin-bottom:4px;letter-spacing:-.01em;" id="pay-modal-title">ชำระผ่าน PromptPay</h2>
+    <p style="font-size:10px;color:rgba(242,242,242,.45);margin-bottom:18px;font-family:JetBrains Mono,monospace;" id="pay-modal-sub">สแกน QR แล้วโอนเงินได้เลย</p>
 
 
 
@@ -6470,8 +6626,16 @@ window.showTatoToast = showTatoToast;
    ══════════════════════════════════════════════════════ */
 
 // ── Slip Webhook — token อยู่ใน Make.com/backend เท่านั้น ──
-// ใส่ Make.com webhook URL ของคุณตรงนี้:
-var SLIP_WEBHOOK_URL = 'YOUR_MAKE_WEBHOOK_URL_HERE';
+// 🔧 SETUP: Replace with your Make.com webhook URL before deploying
+// Get it from: Make.com → Scenarios → Create → Webhooks → Custom webhook
+// Example: 'https://hook.eu1.make.com/xxxxxxxxxxxxxxxxx'
+var SLIP_WEBHOOK_URL = (function(){
+  // Auto-detect from meta tag (set in your hosting config) or env
+  var meta = document.querySelector('meta[name="make-webhook-url"]');
+  if(meta && meta.content && meta.content !== '') return meta.content;
+  // Fallback: hardcode here for development
+  return 'YOUR_MAKE_WEBHOOK_URL_HERE';
+})();
 var TG_ADMIN_CHAT = '5137076057'; // chat_id ไม่ใช่ secret ใส่ได้
 
 var _slipFile = null;
