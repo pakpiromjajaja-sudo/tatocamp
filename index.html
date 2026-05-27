@@ -51,6 +51,10 @@
 <meta name="twitter:description" content="Ambient co-working for digital nomads. Focus rooms, lofi music, live community. Try free." />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="TATO Camp" />
+<meta name="mobile-web-app-capable" content="yes" />
+<!-- PWA manifest inline -->
+<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;TATO Digital Camp&quot;,&quot;short_name&quot;:&quot;TATO&quot;,&quot;start_url&quot;:&quot;/&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;%230D0D0D&quot;,&quot;theme_color&quot;:&quot;%23FF7000&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&amp;w=192&quot;,&quot;sizes&quot;:&quot;192x192&quot;,&quot;type&quot;:&quot;image/png&quot;}]}" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
@@ -1898,6 +1902,15 @@ body::after {
   .action { padding: 8px 13px; font-size: 8px; }
   .scene { height: 34vh !important; min-height: 210px !important; max-height: 320px !important; }
   .scene-content { padding: 18px 14px; }
+  /* Mobile: bigger touch targets */
+  .mobile-nav-btn { min-height: 52px; }
+  .drawer-track-play { width: 44px; height: 44px; }
+  .play-btn { width: 52px; height: 52px; }
+  /* Mobile: paywall plan grid readable */
+  .paywall-box { padding: 24px 16px; }
+  .plan-card { padding: 14px 10px; }
+  /* Mobile: onboarding tip above nav */
+  #onboarding-tip { bottom: 70px; }
   .welcome h1 { font-size: clamp(22px, 7vw, 40px) !important; margin-top: 10px; }
   .app { padding: 8px 8px var(--app-pb, calc(118px + env(safe-area-inset-bottom))) !important; }
 }
@@ -2872,6 +2885,51 @@ setTimeout(function(){ window._updateHeroOnlineCount && window._updateHeroOnline
 
 </div>
 
+<!-- ════════════ ONBOARDING TOOLTIP — First visit only ════════════ -->
+<div id="onboarding-tip" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9000;background:#141414;border:1px solid rgba(255,112,0,.4);border-radius:8px;padding:16px 20px;max-width:320px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.6);animation:fadeUp .5s cubic-bezier(.16,1,.3,1) both;">
+  <div style="display:flex;align-items:flex-start;gap:12px;">
+    <span style="font-size:20px;flex-shrink:0;">🏕️</span>
+    <div>
+      <div id="onboard-title" style="font-family:'Inter',sans-serif;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#FF7000;margin-bottom:6px;">Welcome to TATO Camp</div>
+      <div id="onboard-body" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(242,242,242,.55);line-height:1.7;">Press ▶ to start music · Pick a room from the sidebar · Chat with others on the right</div>
+    </div>
+    <button onclick="document.getElementById('onboarding-tip').style.display='none';localStorage.setItem('tato_onboarded','1');"
+      style="background:none;border:none;color:rgba(242,242,242,.3);cursor:pointer;font-size:14px;flex-shrink:0;line-height:1;padding:0;transition:color .15s;"
+      onmouseover="this.style.color='rgba(242,242,242,.8)'" onmouseout="this.style.color='rgba(242,242,242,.3)'">✕</button>
+  </div>
+</div>
+
+<script>
+// Show onboarding tip for first-time visitors only
+(function(){
+  if(localStorage.getItem('tato_onboarded')) return;
+  setTimeout(function(){
+    var tip = document.getElementById('onboarding-tip');
+    if(!tip) return;
+    var isIntl = typeof _isInternational !== 'undefined' && _isInternational;
+    var titleEl = document.getElementById('onboard-title');
+    var bodyEl = document.getElementById('onboard-body');
+    if(isIntl){
+      if(titleEl) titleEl.textContent = 'Welcome to TATO Camp';
+      if(bodyEl) bodyEl.textContent = 'Press ▶ to start music · Pick a room on the left · Chat with fellow nomads on the right';
+    } else {
+      if(titleEl) titleEl.textContent = 'ยินดีต้อนรับสู่ TATO Camp';
+      if(bodyEl) bodyEl.textContent = 'กด ▶ เปิดเพลง · เลือกห้องจาก Sidebar · แชทกับคนอื่นด้านขวา';
+    }
+    tip.style.display = 'block';
+    // Auto-dismiss after 8 seconds
+    setTimeout(function(){
+      tip.style.opacity = '0';
+      tip.style.transition = 'opacity .5s';
+      setTimeout(function(){
+        tip.style.display = 'none';
+        localStorage.setItem('tato_onboarded','1');
+      }, 500);
+    }, 8000);
+  }, 2500);
+})();
+</script>
+
 <!-- ════════════ RIGHT PANEL ════════════ -->
 <aside class="right-panel">
 
@@ -3382,12 +3440,16 @@ window._updateSocialProof = function(){
     get(ref(db,'presence')).then(function(snap){
       var cnt = snap.exists() ? Object.keys(snap.val()).length : 0;
       var el = document.getElementById('sp-online');
-      if(el) el.textContent = cnt + ' คนออนไลน์ตอนนี้';
+      if(el) el.textContent = cnt + (_isInternational ? ' online now' : ' คนออนไลน์ตอนนี้');
+      // Also update hero counter
+      var heroEl = document.getElementById('hero-stat-online');
+      if(heroEl) heroEl.textContent = cnt > 0 ? cnt : '—';
     });
     get(ref(db,'subscriptions')).then(function(snap){
       var cnt = snap.exists() ? Object.keys(snap.val()).length : 0;
       var el = document.getElementById('sp-members');
-      if(el) el.textContent = (cnt + 128);
+      // Show real count — no fake inflation
+      if(el) el.textContent = cnt + (_isInternational ? ' members' : ' สมาชิก');
     });
   }catch(e){}
   // Sync plan prices from PAYMENT_CONFIG (auto currency)
@@ -3428,12 +3490,20 @@ window.choosePlan = function(plan){
   // Generate a fresh slip code for this payment attempt
   window._currentSlipCode = window._genSlipCode();
 
-  // Populate modal
+  var isIntl = PAYMENT_CONFIG.currency === 'USD';
+
+  // Populate modal — title adapts to currency
   document.getElementById('pay-plan-badge').textContent = cfg.emoji+' '+cfg.label;
+  var titleEl = document.getElementById('pay-modal-title');
+  var subEl = document.getElementById('pay-modal-sub');
+  if(titleEl) titleEl.textContent = isIntl ? 'Complete Payment' : 'ชำระผ่าน PromptPay';
+  if(subEl) subEl.textContent = isIntl
+    ? 'Contact us on LINE to pay via bank transfer or crypto'
+    : 'สแกน QR แล้วโอนเงินได้เลย';
   // QR tab — render locally (no external API needed)
-  document.getElementById('pay-amount-label').textContent = '฿'+amount;
+  document.getElementById('pay-amount-label').textContent = displayAmount;
   if(document.getElementById('pay-amount-hint'))
-    document.getElementById('pay-amount-hint').textContent = '฿'+amount;
+    document.getElementById('pay-amount-hint').textContent = displayAmount;
   if(document.getElementById('pay-phone-label'))
     document.getElementById('pay-phone-label').innerHTML = 'PromptPay: <strong style="color:rgba(242,242,242,.7);">'+PAYMENT_CONFIG.promptpayNumber+'</strong>';
   // Set QR image src ตรงๆ — ไม่ต้องรอ JS render
@@ -3491,11 +3561,13 @@ window.choosePlan = function(plan){
     };
   });
 
-  // LINE button (may not exist if removed from modal HTML — guard null)
   var lineBtn = document.getElementById('pay-line-btn');
   var emailHint = window._myEmail ? ' email:'+window._myEmail : '';
-  var slipCodeHint = window._currentSlipCode ? ' รหัสสลิป:'+window._currentSlipCode : '';
-  if(lineBtn) lineBtn.href = PAYMENT_CONFIG.lineContact+'?text='+encodeURIComponent('สวัสดี! ต้องการสมัคร TATO '+cfg.label+' ฿'+amount+' UID:'+myUid+emailHint+slipCodeHint+' — ส่ง slip ด้วยครับ 🙏');
+  var slipCodeHint = window._currentSlipCode ? ' ref:'+window._currentSlipCode : '';
+  var lineMsg = isIntl
+    ? 'Hi! I want to subscribe to TATO '+cfg.label+' '+displayAmount+' UID:'+myUid+emailHint+slipCodeHint+' — please send payment instructions 🙏'
+    : 'สวัสดี! ต้องการสมัคร TATO '+cfg.label+' '+displayAmount+' UID:'+myUid+emailHint+slipCodeHint+' — ส่ง slip ด้วยครับ 🙏';
+  if(lineBtn) lineBtn.href = PAYMENT_CONFIG.lineContact+'?text='+encodeURIComponent(lineMsg);
 
   // Update slip code display in modal
   var slipCodeEl = document.getElementById('pay-slip-code');
@@ -3517,15 +3589,25 @@ window.choosePlan = function(plan){
   // Save payment intent (includes slipCode)
   try{ set(ref(db,'payment_intent/'+myUid),{plan:plan,amount:amount,name:myName,email:window._myEmail||'',slipCode:window._currentSlipCode||'',t:serverTimestamp()}); }catch(e){}
   try{
-    var notifyMsg = '🔔 ลูกค้าใหม่เลือกแพ็คเกจ!\n'
-      + '👤 ชื่อ: '+(myName||'Guest')+'\n'
-      + '📦 แพ็คเกจ: '+cfg.label+' ('+plan+')\n'
-      + '💰 ยอด: ฿'+amount+'\n'
-      + '🆔 UID: '+myUid+'\n'
-      + (window._myEmail ? '📧 Email: '+window._myEmail+'\n' : '')
-      + '🎫 รหัสสลิป: '+(window._currentSlipCode||'—')+'\n'
-      + '⏰ '+new Date().toLocaleString('th-TH')+'\n'
-      + '→ กด Activate ใน Admin Dashboard';
+    var notifyMsg = _isInternational
+      ? '🔔 New customer selected a plan!\n'
+        + '👤 Name: '+(myName||'Guest')+'\n'
+        + '📦 Plan: '+cfg.label+' ('+plan+')\n'
+        + '💰 Amount: '+displayAmount+'\n'
+        + '🆔 UID: '+myUid+'\n'
+        + (window._myEmail ? '📧 Email: '+window._myEmail+'\n' : '')
+        + '🎫 Ref Code: '+(window._currentSlipCode||'—')+'\n'
+        + '⏰ '+new Date().toLocaleString('en-US')+'\n'
+        + '→ Activate in Admin Dashboard'
+      : '🔔 ลูกค้าใหม่เลือกแพ็คเกจ!\n'
+        + '👤 ชื่อ: '+(myName||'Guest')+'\n'
+        + '📦 แพ็คเกจ: '+cfg.label+' ('+plan+')\n'
+        + '💰 ยอด: '+displayAmount+'\n'
+        + '🆔 UID: '+myUid+'\n'
+        + (window._myEmail ? '📧 Email: '+window._myEmail+'\n' : '')
+        + '🎫 รหัสสลิป: '+(window._currentSlipCode||'—')+'\n'
+        + '⏰ '+new Date().toLocaleString('th-TH')+'\n'
+        + '→ กด Activate ใน Admin Dashboard';
     window._adminNotifyUrl = PAYMENT_CONFIG.lineContact+'?text='+encodeURIComponent(notifyMsg);
     var badge = document.getElementById('adm-payment-badge');
     if(badge){ badge.style.display='inline-flex'; badge.textContent='NEW'; }
@@ -3584,12 +3666,12 @@ function startFreeTimer(){
     if(leftMs<5*60*1000){
       if(disp) disp.style.color='#EF4444';
       if(fill){ fill.style.background='#EF4444'; fill.style.boxShadow='0 0 8px rgba(239,68,68,.5)'; }
-      if(lbl){ lbl.textContent='ใกล้หมดเวลา!'; lbl.style.color='rgba(239,68,68,.7)'; }
+      if(lbl){ lbl.textContent= _isInternational ? 'Running out!' : 'ใกล้หมดเวลา!'; lbl.style.color='rgba(239,68,68,.7)'; }
       var bar2=document.getElementById('free-timer-bar');
       if(bar2) bar2.style.background='linear-gradient(90deg,rgba(239,68,68,.12) 0%,rgba(239,68,68,.06) 100%)';
     } else {
       var totalMin=Math.ceil(leftMs/60000);
-      if(lbl) lbl.textContent='เหลืออีก ~'+totalMin+' นาที';
+      if(lbl) lbl.textContent= _isInternational ? '~'+totalMin+' min left' : 'เหลืออีก ~'+totalMin+' นาที';
     }
     if(leftMs===0){ clearInterval(window._freeBarInt); }
   },1000);
@@ -3599,11 +3681,14 @@ function showPaywall(){
   document.getElementById('paywall-overlay').classList.add('show');
   document.getElementById('paywall-countdown').classList.remove('show');
   clearInterval(_countdownInt);
-  // Update badge with correct free minutes
   var badgeEl=document.getElementById('paywall-timer-badge');
-  if(badgeEl){ var freeMin=Math.round(FREE_MS/60000); badgeEl.textContent='⏱ หมดเวลา Free '+freeMin+' นาทีแล้ว'; }
+  if(badgeEl){
+    var freeMin=Math.round(FREE_MS/60000);
+    badgeEl.textContent = _isInternational
+      ? '⏱ Your '+freeMin+' min free session has ended'
+      : '⏱ หมดเวลา Free '+freeMin+' นาทีแล้ว';
+  }
   if(typeof window._updateSocialProof==='function') window._updateSocialProof();
-  // Hide email row if already captured
   if(window._myEmail){
     var row=document.getElementById('paywall-email-row');
     if(row) row.style.display='none';
@@ -3676,7 +3761,7 @@ function initPayModal(){
       ondragover="event.preventDefault();this.style.borderColor='#FF7000';"
       ondragleave="this.style.borderColor='rgba(90,90,90,.5)';"
       ondrop="event.preventDefault();this.style.borderColor='rgba(90,90,90,.5)';handleSlipFileDrop(event.dataTransfer.files[0]);">
-      <div style="font-family:JetBrains Mono,monospace;font-size:8px;letter-spacing:.2em;color:rgba(242,242,242,.4);text-transform:uppercase;margin-bottom:8px;">📎 อัปโหลดสลิปการโอนเงิน</div>
+      <div style="font-family:JetBrains Mono,monospace;font-size:8px;letter-spacing:.2em;color:rgba(242,242,242,.4);text-transform:uppercase;margin-bottom:8px;" id="pay-slip-upload-label">📎 อัปโหลดสลิปการโอนเงิน</div>
       <label for="pay-slip-file-input" id="pay-slip-file-label" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px;background:rgba(255,112,0,.08);border:1px solid rgba(255,112,0,.25);color:#FF7000;font-family:JetBrains Mono,monospace;font-size:10px;font-weight:700;letter-spacing:.1em;cursor:pointer;border-radius:5px;transition:all .15s;box-sizing:border-box;text-transform:uppercase;"
         onmouseover="this.style.background='rgba(255,112,0,.15)';this.style.borderColor='#FF7000';"
         onmouseout="this.style.background='rgba(255,112,0,.08)';this.style.borderColor='rgba(255,112,0,.25)';">
